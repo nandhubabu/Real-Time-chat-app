@@ -1,27 +1,23 @@
-// 1. Load your tools
-const express = require('express');
-const dotenv = require('dotenv');
+// 1. Modern Imports (ES Modules)
+import express from 'express';
+import dotenv from 'dotenv';
+import authRoutes from './routes/auth.routes.js'; // IMPORTANT: Must include .js
 
-// 2. Load your secret variables from .env
+// 2. Configuration
 dotenv.config();
-
 const app = express();
 
-const authRoutes = require('./routes/auth.routes');
-
-// Add this line after your middlewares
-app.use("/api/auth", authRoutes);
-
-// 3. Middlewares: This allows the server to read JSON data sent from React
+// 3. Middlewares
 app.use(express.json());
 
-// 4. A Test Route: To check if the server is alive
+// 4. Routes
 app.get('/', (req, res) => {
     res.send("Chat Server is Running Successfully!");
 });
 
+app.use("/api/auth", authRoutes);
 
-// 5. Start the Server
+// 5. Start
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server started on http://localhost:${PORT}`);
