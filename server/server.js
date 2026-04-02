@@ -7,6 +7,11 @@ dotenv.config();
 
 const app = express();
 
+const authRoutes = require('./routes/auth.routes');
+
+// Add this line after your middlewares
+app.use("/api/auth", authRoutes);
+
 // 3. Middlewares: This allows the server to read JSON data sent from React
 app.use(express.json());
 
@@ -14,6 +19,7 @@ app.use(express.json());
 app.get('/', (req, res) => {
     res.send("Chat Server is Running Successfully!");
 });
+
 
 // 5. Start the Server
 const PORT = process.env.PORT || 5000;
