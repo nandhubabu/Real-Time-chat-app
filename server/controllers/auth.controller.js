@@ -63,8 +63,14 @@ export const login = async (req, res) => {
         }
 
         // 3. Generate Token (The same logic as signup)
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-            expiresIn: "7d",
+        // Replace your token generation with this:
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+        res.cookie("jwt", token, {
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+            httpOnly: true, // Prevents XSS attacks
+            sameSite: "strict", // Prevents CSRF attacks
+            secure: process.env.NODE_ENV !== "development", // Only HTTPS in production
         });
 
         res.status(200).json({

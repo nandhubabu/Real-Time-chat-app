@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { connectDB } from './lib/db.js';
 import authRoutes from './routes/auth.routes.js';
 import { app, server } from "./lib/socket.js";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 const app = express();
@@ -13,6 +14,8 @@ connectDB();
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+
+app.use(cookieParser());
 
 
 app.get('/', (req, res) => {
