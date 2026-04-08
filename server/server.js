@@ -11,17 +11,15 @@ dotenv.config();
 connectDB();
 
 app.use(express.json());
-
-app.use("/api/auth", authRoutes);
-
 app.use(cookieParser());
-
 app.use(
     cors({
         origin: "http://localhost:5173", // Allow your React app
         credentials: true, // Allow cookies to be sent back and forth
     })
 );
+
+app.use("/api/auth", authRoutes);
 
 app.get('/', (req, res) => {
     res.send("Chat Server is Running Successfully!");
