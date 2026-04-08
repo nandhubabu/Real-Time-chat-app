@@ -10,6 +10,7 @@ export const useAuthStore = create((set, get) => ({
     isLoggingIn: false,
     isCheckingAuth: true,
     socket: null,
+    onlineUsers: [],
 
     connectSocket: () => {
         const { authUser } = get();
@@ -23,6 +24,10 @@ export const useAuthStore = create((set, get) => ({
 
         socket.connect();
         set({ socket });
+
+        socket.on("getOnlineUsers", (userIds) => {
+            set({ onlineUsers: userIds });
+        });
     },
 
     disconnectSocket: () => {
