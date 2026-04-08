@@ -41,7 +41,7 @@ export const signup = async (req, res) => {
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
                 httpOnly: true, // Prevents XSS attacks
                 sameSite: "strict", // Prevents CSRF attacks
-                secure: process.env.NODE_ENV !== "development", // Only HTTPS in production
+                secure: process.env.NODE_ENV === "production", // Fixes bug where undefined !== 'development' evaluated to true
             });
 
             res.status(201).json({
@@ -80,7 +80,7 @@ export const login = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
             httpOnly: true, // Prevents XSS attacks
             sameSite: "strict", // Prevents CSRF attacks
-            secure: process.env.NODE_ENV !== "development", // Only HTTPS in production
+            secure: process.env.NODE_ENV === "production", // Fixes bug where undefined !== 'development' evaluated to true
         });
 
         res.status(200).json({

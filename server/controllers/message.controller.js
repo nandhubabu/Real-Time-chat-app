@@ -1,6 +1,7 @@
 import Message from "../models/Message.js";
 import User from "../models/User.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
+import cloudinary from "../lib/cloudinary.js";
 
 export const sendMessage = async (req, res) => {
     try {
@@ -8,12 +9,18 @@ export const sendMessage = async (req, res) => {
         const { id: receiverId } = req.params; // The person you are chatting with
         const senderId = req.user._id; // The logged-in user (from your JWT middleware)
 
+        let imageUrl;
+        if (image) {
+            const uploadResponse = await cloudinary.uploader.upload(image);
+            imageUrl = uploadResponse.secure_url;
+        }
+
         // 1. Create the message object
         const newMessage = new Message({
             senderId,
             receiverId,
             text,
-            image,
+            image: imageUrl,
         });
 
         // 2. Save it permanently

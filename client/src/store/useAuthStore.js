@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import { io } from "socket.io-client";
+import toast from "react-hot-toast";
 
 const BASE_URL = "http://localhost:5000";
 
@@ -52,8 +53,10 @@ export const useAuthStore = create((set, get) => ({
         try {
             const res = await axiosInstance.post("/auth/signup", data);
             set({ authUser: res.data });
+            toast.success("Account created successfully!");
             get().connectSocket();
         } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to sign up");
             console.log("Error in signup:", error);
         } finally {
             set({ isSigningUp: false });
@@ -65,8 +68,10 @@ export const useAuthStore = create((set, get) => ({
         try {
             const res = await axiosInstance.post("/auth/login", data);
             set({ authUser: res.data });
+            toast.success("Logged in successfully!");
             get().connectSocket();
         } catch (error) {
+            toast.error(error.response?.data?.message || "Invalid Credentials");
             console.log("Error in login:", error);
         } finally {
             set({ isLoggingIn: false });
@@ -77,8 +82,10 @@ export const useAuthStore = create((set, get) => ({
         try {
             await axiosInstance.post("/auth/logout");
             set({ authUser: null });
+            toast.success("Logged out successfully");
             get().disconnectSocket(); // Sever connection
         } catch (error) {
+            toast.error(error.response?.data?.message || "Logout failed");
             console.log("Error in logout:", error);
         }
     },

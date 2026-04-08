@@ -10,7 +10,7 @@ dotenv.config();
 // 1. Logic Check: Connect to DB first
 connectDB();
 
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 app.use(
     cors({
