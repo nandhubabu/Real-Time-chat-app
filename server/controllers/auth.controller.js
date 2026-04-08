@@ -12,8 +12,11 @@ export const signup = async (req, res) => {
         }
 
         // 2. Check if user already exists
-        const userExists = await User.findOne({ email });
-        if (userExists) return res.status(400).json({ message: "Email already exists" });
+        const existingEmail = await User.findOne({ email });
+        if (existingEmail) return res.status(400).json({ message: "Email already exists" });
+
+        const existingUsername = await User.findOne({ username });
+        if (existingUsername) return res.status(400).json({ message: "Username already exists" });
 
         // 3. Hash the Password (The Industry Guard)
         const salt = await bcrypt.genSalt(10);
@@ -98,5 +101,15 @@ export const checkAuth = async (req, res) => {
     } catch (error) {
         console.log("Error in checkAuth controller:", error.message);
         res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const logout = (req, res) => {
+    try {
+        res.cookie("jwt", "", { maxAge: 0 });
+        res.status(200).json({ message: "Logged out successfully" });
+    } catch (error) {
+        console.log("Error in logout controller", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
     }
 };

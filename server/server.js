@@ -19,8 +19,10 @@ app.use(
     })
 );
 
-app.use("/api/auth", authRoutes);
+import messageRoutes from './routes/message.routes.js';
 
+app.use("/api/auth", authRoutes);
+app.use("/api/messages", messageRoutes);
 app.get('/', (req, res) => {
     res.send("Chat Server is Running Successfully!");
 });
