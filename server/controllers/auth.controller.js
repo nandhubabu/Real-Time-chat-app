@@ -37,10 +37,17 @@ export const signup = async (req, res) => {
                 expiresIn: "7d", // User stays logged in for 7 days
             });
 
+            res.cookie("jwt", token, {
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+                httpOnly: true, // Prevents XSS attacks
+                sameSite: "strict", // Prevents CSRF attacks
+                secure: process.env.NODE_ENV !== "development", // Only HTTPS in production
+            });
+
             res.status(201).json({
                 _id: newUser._id,
                 username: newUser.username,
-                token: token, // Send this back to React to store in LocalStorage
+                token: token,
             });
         }
     } catch (error) {
