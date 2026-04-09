@@ -127,17 +127,51 @@ export const logout = (req, res) => {
 
 export const updateProfile = async (req, res) => {
     try {
-        const { profilePic } = req.body;
+        const { profilePic, username } = req.body;
         const userId = req.user._id;
+        const user = await User.findById(userId);
 
-        if (!profilePic) {
-            return res.status(400).json({ message: "Profile picture is required" });
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const updateData = {};
+
+        // Handle username change
+        if (username && username !== user.username) {
+            const existingUser = await User.findOne({ username });
+            if (existingUser) {
+                return res.status(400).json({ message: "Username already taken" });
+            }
+            updateData.username = username;
         }
 
-        const uploadResponse = await cloudinary.uploader.upload(profilePic);
+        // Handle profile picture change with monthly restriction
+        if (profilePic) {
+            if (user.lastProfilePicUpdate) {
+                const lastUpdate = new Date(user.lastProfilePicUpdate);
+                const now = new Date();
+                const diffMs = now - lastUpdate;
+                const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+                if (diffDays < 30) {
+                    const daysLeft = Math.ceil(30 - diffDays);
+                    return res.status(400).json({
+                        message: `You can change your profile picture again in ${daysLeft} day(s)`,
+                    });
+                }
+            }
+
+            const uploadResponse = await cloudinary.uploader.upload(profilePic);
+            updateData.profilePic = uploadResponse.secure_url;
+            updateData.lastProfilePicUpdate = new Date();
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({ message: "No changes to update" });
+        }
+
         const updatedUser = await User.findByIdAndUpdate(
             userId,
-            { profilePic: uploadResponse.secure_url },
+            updateData,
             { new: true }
         ).select("-password");
 

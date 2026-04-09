@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Camera, User, Mail, Calendar } from "lucide-react";
+import { Camera, User, Mail, Pencil, Check, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 const ProfilePage = () => {
     const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();
     const [selectedImg, setSelectedImg] = useState(null);
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [newUsername, setNewUsername] = useState(authUser?.username || "");
 
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
@@ -20,13 +22,43 @@ const ProfilePage = () => {
         };
     };
 
+    const handleNameSave = async () => {
+        if (!newUsername.trim()) {
+            toast.error("Name cannot be empty");
+            return;
+        }
+        if (newUsername === authUser.username) {
+            setIsEditingName(false);
+            return;
+        }
+        await updateProfile({ username: newUsername.trim() });
+        setIsEditingName(false);
+    };
+
+    const handleNameCancel = () => {
+        setNewUsername(authUser?.username || "");
+        setIsEditingName(false);
+    };
+
+    // Calculate days until next profile pic change
+    const getDaysUntilNextChange = () => {
+        if (!authUser?.lastProfilePicUpdate) return null;
+        const lastUpdate = new Date(authUser.lastProfilePicUpdate);
+        const now = new Date();
+        const diffDays = (now - lastUpdate) / (1000 * 60 * 60 * 24);
+        if (diffDays >= 30) return null;
+        return Math.ceil(30 - diffDays);
+    };
+
+    const daysLeft = getDaysUntilNextChange();
+
     return (
-        <div className="h-screen pt-20">
+        <div className="min-h-screen pt-20 pb-10">
             <div className="max-w-2xl mx-auto p-4 py-8">
                 <div className="bg-base-300 rounded-xl p-6 space-y-8">
                     <div className="text-center">
                         <h1 className="text-2xl font-semibold">Profile</h1>
-                        <p className="mt-2">Your profile information</p>
+                        <p className="mt-2 text-base-content/70">Your profile information</p>
                     </div>
 
                     {/* Avatar Upload Section */}
@@ -35,7 +67,7 @@ const ProfilePage = () => {
                             <img
                                 src={selectedImg || authUser.profilePic || "/avatar.png"}
                                 alt="Profile"
-                                className="size-32 rounded-full object-cover border-4"
+                                className="size-32 rounded-full object-cover border-4 border-base-100"
                             />
                             <label
                                 htmlFor="avatar-upload"
@@ -44,8 +76,9 @@ const ProfilePage = () => {
                   bg-base-content hover:scale-105
                   p-2 rounded-full cursor-pointer 
                   transition-all duration-200
-                  ${isUpdatingProfile ? "animate-pulse pointer-events-none" : ""}
+                  ${isUpdatingProfile || daysLeft ? "opacity-50 pointer-events-none" : ""}
                 `}
+                                title={daysLeft ? `Can change in ${daysLeft} day(s)` : "Upload new photo"}
                             >
                                 <Camera className="w-5 h-5 text-base-200" />
                                 <input
@@ -54,51 +87,96 @@ const ProfilePage = () => {
                                     className="hidden"
                                     accept="image/*"
                                     onChange={handleImageUpload}
-                                    disabled={isUpdatingProfile}
+                                    disabled={isUpdatingProfile || !!daysLeft}
                                 />
                             </label>
                         </div>
-                        <p className="text-sm text-zinc-400">
+                        <p className="text-sm text-base-content/50">
                             {isUpdatingProfile
                                 ? "Uploading..."
-                                : "Click the camera icon to update your photo"}
+                                : daysLeft
+                                    ? `📅 You can change your photo again in ${daysLeft} day(s)`
+                                    : "Click the camera icon to update your photo"}
                         </p>
                     </div>
 
                     {/* User Info Section */}
                     <div className="space-y-6">
+                        {/* Editable Username */}
                         <div className="space-y-1.5">
-                            <div className="text-sm text-zinc-400 flex items-center gap-2">
+                            <div className="text-sm text-base-content/60 flex items-center gap-2">
                                 <User className="w-4 h-4" />
                                 Full Name
                             </div>
-                            <p className="px-4 py-2.5 bg-base-200 rounded-lg border">
-                                {authUser?.username}
-                            </p>
+                            {isEditingName ? (
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        className="input input-bordered flex-1"
+                                        value={newUsername}
+                                        onChange={(e) => setNewUsername(e.target.value)}
+                                        autoFocus
+                                        maxLength={30}
+                                    />
+                                    <button
+                                        onClick={handleNameSave}
+                                        className="btn btn-sm btn-success btn-circle"
+                                        disabled={isUpdatingProfile}
+                                    >
+                                        <Check className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={handleNameCancel}
+                                        className="btn btn-sm btn-ghost btn-circle"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-between px-4 py-2.5 bg-base-200 rounded-lg border">
+                                    <span>{authUser?.username}</span>
+                                    <button
+                                        onClick={() => setIsEditingName(true)}
+                                        className="btn btn-ghost btn-xs btn-circle"
+                                        title="Edit name"
+                                    >
+                                        <Pencil className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
+                        {/* Email (Read-only) */}
                         <div className="space-y-1.5">
-                            <div className="text-sm text-zinc-400 flex items-center gap-2">
+                            <div className="text-sm text-base-content/60 flex items-center gap-2">
                                 <Mail className="w-4 h-4" />
                                 Email Address
                             </div>
-                            <p className="px-4 py-2.5 bg-base-200 rounded-lg border">
+                            <p className="px-4 py-2.5 bg-base-200 rounded-lg border text-base-content/80">
                                 {authUser?.email}
                             </p>
                         </div>
                     </div>
 
                     {/* Account Info Section */}
-                    <div className="mt-6 bg-base-200 rounded-xl p-6">
+                    <div className="bg-base-200 rounded-xl p-6">
                         <h2 className="text-lg font-medium mb-4">Account Information</h2>
                         <div className="space-y-3 text-sm">
-                            <div className="flex items-center justify-between py-2 border-b border-zinc-700">
+                            <div className="flex items-center justify-between py-2 border-b border-base-300">
                                 <span>Member Since</span>
                                 <span>{authUser.createdAt?.split("T")[0]}</span>
                             </div>
-                            <div className="flex items-center justify-between py-2">
+                            <div className="flex items-center justify-between py-2 border-b border-base-300">
                                 <span>Account Status</span>
                                 <span className="text-green-500">Active</span>
+                            </div>
+                            <div className="flex items-center justify-between py-2">
+                                <span>Last Profile Pic Change</span>
+                                <span className="text-base-content/70">
+                                    {authUser.lastProfilePicUpdate
+                                        ? new Date(authUser.lastProfilePicUpdate).toLocaleDateString()
+                                        : "Never"}
+                                </span>
                             </div>
                         </div>
                     </div>

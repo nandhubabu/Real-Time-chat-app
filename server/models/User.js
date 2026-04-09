@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema({
         type: String, // We store the URL of the image, not the image itself
         default: "",
     },
+    lastProfilePicUpdate: {
+        type: Date,
+        default: null, // null means they've never changed it
+    },
 }, { timestamps: true }); // Automatically adds 'createdAt' and 'updatedAt'
 
 const User = mongoose.model('User', userSchema);
