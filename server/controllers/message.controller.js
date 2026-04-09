@@ -44,9 +44,29 @@ export const getUsersForSidebar = async (req, res) => {
     try {
         const loggedInUserId = req.user._id;
 
-        const filteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("-password");
+        // Find all unique user IDs that the logged-in user has messaged or received messages from
+        const messages = await Message.find({
+            $or: [
+                { senderId: loggedInUserId },
+                { receiverId: loggedInUserId },
+            ],
+        }).select("senderId receiverId");
 
-        res.status(200).json(filteredUsers);
+        // Collect the other user ID from each message conversation
+        const contactIds = new Set();
+        messages.forEach((msg) => {
+            const otherId = msg.senderId.toString() === loggedInUserId.toString()
+                ? msg.receiverId.toString()
+                : msg.senderId.toString();
+            contactIds.add(otherId);
+        });
+
+        // Fetch full user details for those contacts only
+        const contacts = await User.find({
+            _id: { $in: Array.from(contactIds) },
+        }).select("-password");
+
+        res.status(200).json(contacts);
     } catch (error) {
         console.error("Error in getUsersForSidebar: ", error.message);
         res.status(500).json({ error: "Internal server error" });
@@ -70,6 +90,30 @@ export const searchUserByUniqueId = async (req, res) => {
         res.status(200).json(user);
     } catch (error) {
         console.error("Error in searchUserByUniqueId: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const markMessagesRead = async (req, res) => {
+    try {
+        const { senderId } = req.params;  // the person who sent the messages we are marking as read
+        const receiverId = req.user._id;  // the logged-in user who is now reading them
+
+        // Mark all unread messages from senderId to receiverId as read
+        await Message.updateMany(
+            { senderId, receiverId, isRead: false },
+            { $set: { isRead: true } }
+        );
+
+        // Notify the original sender in real-time that their messages were read
+        const senderSocketId = getReceiverSocketId(senderId);
+        if (senderSocketId) {
+            io.to(senderSocketId).emit("messagesRead", { readBy: receiverId, from: senderId });
+        }
+
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error("Error in markMessagesRead: ", error.message);
         res.status(500).json({ error: "Internal server error" });
     }
 };

@@ -4,9 +4,18 @@ import { useAuthStore } from "../store/useAuthStore";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import { formatMessageTime } from "../lib/utils";
+import { Check, CheckCheck } from "lucide-react";
 
 const ChatContainer = () => {
-    const { messages, getMessages, isMessagesLoading, selectedUser, subscribeToMessages, unsubscribeFromMessages } = useChatStore();
+    const {
+        messages,
+        getMessages,
+        isMessagesLoading,
+        selectedUser,
+        subscribeToMessages,
+        unsubscribeFromMessages,
+        markAsRead,
+    } = useChatStore();
     const { authUser } = useAuthStore();
     const messageEndRef = useRef(null);
 
@@ -14,9 +23,11 @@ const ChatContainer = () => {
         if (selectedUser) {
             getMessages(selectedUser._id);
             subscribeToMessages();
+            // Mark the selected user's messages as read when we open the chat
+            markAsRead(selectedUser._id);
         }
         return () => unsubscribeFromMessages();
-    }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+    }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages, markAsRead]);
 
     useEffect(() => {
         if (messageEndRef.current && messages) {
@@ -72,6 +83,23 @@ const ChatContainer = () => {
                                 )}
                                 {message.text && <p>{message.text}</p>}
                             </div>
+
+                            {/* Read Receipt — only show on MY messages */}
+                            {isFromMe && (
+                                <div className="chat-footer mt-0.5">
+                                    {message.isRead ? (
+                                        <span className="flex items-center gap-0.5 text-xs text-primary" title="Seen">
+                                            <CheckCheck className="size-3.5" />
+                                            <span className="opacity-70">Seen</span>
+                                        </span>
+                                    ) : (
+                                        <span className="flex items-center gap-0.5 text-xs opacity-40" title="Sent">
+                                            <Check className="size-3.5" />
+                                            <span>Sent</span>
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     );
                 })}
