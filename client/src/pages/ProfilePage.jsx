@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
-import { Camera, User, Mail, Pencil, Check, X } from "lucide-react";
+import { Camera, User, Mail, Pencil, Check, X, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 
 const ProfilePage = () => {
+    const navigate = useNavigate();
     const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();
     const [selectedImg, setSelectedImg] = useState(null);
     const [isEditingName, setIsEditingName] = useState(false);
@@ -56,9 +58,16 @@ const ProfilePage = () => {
         <div className="min-h-screen pt-20 pb-10">
             <div className="max-w-2xl mx-auto p-4 py-8">
                 <div className="bg-base-300 rounded-xl p-6 space-y-8">
-                    <div className="text-center">
-                        <h1 className="text-2xl font-semibold">Profile</h1>
-                        <p className="mt-2 text-base-content/70">Your profile information</p>
+                    <div className="flex items-center justify-between">
+                        <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm gap-2">
+                            <ArrowLeft className="w-4 h-4" />
+                            Back
+                        </button>
+                        <div className="text-center flex-1">
+                            <h1 className="text-2xl font-semibold">Profile</h1>
+                            <p className="mt-2 text-base-content/70">Your profile information</p>
+                        </div>
+                        <div className="w-16"></div>
                     </div>
 
                     {/* Avatar Upload Section */}

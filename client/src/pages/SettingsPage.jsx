@@ -1,4 +1,5 @@
-import { Send, Bell, MessageCircle, Shield, Palette, Volume2, Monitor, Clock, Type, Eye, CheckCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Send, Bell, MessageCircle, Shield, Palette, Volume2, Monitor, Clock, Type, Eye, CheckCheck, ArrowLeft } from "lucide-react";
 import { useThemeStore } from "../store/useThemeStore";
 import { useSettingsStore } from "../store/useSettingsStore";
 
@@ -17,6 +18,7 @@ const PREVIEW_MESSAGES = [
 ];
 
 const SettingsPage = () => {
+    const navigate = useNavigate();
     const { theme, setTheme } = useThemeStore();
     const {
         messageNotifications, setMessageNotifications,
@@ -32,6 +34,11 @@ const SettingsPage = () => {
     return (
         <div className="min-h-screen pt-20 pb-10 container mx-auto px-4 max-w-4xl">
             <div className="space-y-8">
+                {/* Back Button */}
+                <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm gap-2">
+                    <ArrowLeft className="w-4 h-4" />
+                    Back
+                </button>
 
                 {/* ═══════════════════════════════════════════ */}
                 {/* NOTIFICATION SETTINGS */}
