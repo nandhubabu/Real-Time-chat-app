@@ -107,7 +107,7 @@ const ChatContainer = () => {
 
     return (
         <div className="flex-1 flex flex-col bg-base-100 overflow-hidden" onClick={() => setContextMenu(null)}>
-            <ChatHeader />
+            <ChatHeader onSelect={() => setSelectMode(true)} onDeleteAll={handleDeleteAll} />
 
             {/* Multi-select Toolbar */}
             {selectMode && (
@@ -125,24 +125,6 @@ const ChatContainer = () => {
                         onClick={() => { setSelectMode(false); setSelectedIds(new Set()); }}
                     >
                         <X className="size-4" /> Cancel
-                    </button>
-                </div>
-            )}
-
-            {/* Action Bar */}
-            {!selectMode && (
-                <div className="flex items-center gap-2 px-4 py-1.5 bg-base-100 border-b border-base-300 text-xs">
-                    <button
-                        className="btn btn-xs btn-ghost gap-1 ml-auto opacity-60 hover:opacity-100"
-                        onClick={() => setSelectMode(true)}
-                    >
-                        <SquareCheck className="size-3.5" /> Select
-                    </button>
-                    <button
-                        className="btn btn-xs btn-ghost gap-1 text-error opacity-60 hover:opacity-100"
-                        onClick={handleDeleteAll}
-                    >
-                        <Trash2 className="size-3.5" /> Delete all my messages
                     </button>
                 </div>
             )}
