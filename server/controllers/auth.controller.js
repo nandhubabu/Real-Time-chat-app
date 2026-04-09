@@ -1,6 +1,7 @@
 import User from '../models/User.js'; // Must include .js
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import cloudinary from '../lib/cloudinary.js';
 
 export const signup = async (req, res) => {
     const { username, email, password } = req.body;
@@ -41,12 +42,14 @@ export const signup = async (req, res) => {
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
                 httpOnly: true, // Prevents XSS attacks
                 sameSite: "strict", // Prevents CSRF attacks
-                secure: process.env.NODE_ENV === "production", // Fixes bug where undefined !== 'development' evaluated to true
+                secure: process.env.NODE_ENV === "production",
             });
 
             res.status(201).json({
                 _id: newUser._id,
                 username: newUser.username,
+                email: newUser.email,
+                profilePic: newUser.profilePic,
                 token: token,
             });
         }
@@ -73,19 +76,20 @@ export const login = async (req, res) => {
         }
 
         // 3. Generate Token (The same logic as signup)
-        // Replace your token generation with this:
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
         res.cookie("jwt", token, {
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
-            httpOnly: true, // Prevents XSS attacks
-            sameSite: "strict", // Prevents CSRF attacks
-            secure: process.env.NODE_ENV === "production", // Fixes bug where undefined !== 'development' evaluated to true
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            sameSite: "strict",
+            secure: process.env.NODE_ENV === "production",
         });
 
         res.status(200).json({
             _id: user._id,
             username: user.username,
+            email: user.email,
+            profilePic: user.profilePic,
             token: token,
         });
     } catch (error) {
@@ -118,5 +122,28 @@ export const logout = (req, res) => {
     } catch (error) {
         console.log("Error in logout controller", error.message);
         res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { profilePic } = req.body;
+        const userId = req.user._id;
+
+        if (!profilePic) {
+            return res.status(400).json({ message: "Profile picture is required" });
+        }
+
+        const uploadResponse = await cloudinary.uploader.upload(profilePic);
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { profilePic: uploadResponse.secure_url },
+            { new: true }
+        ).select("-password");
+
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        console.log("Error in updateProfile controller:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 };
