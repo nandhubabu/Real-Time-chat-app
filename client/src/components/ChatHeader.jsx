@@ -18,9 +18,22 @@ const ChatHeader = () => {
                         <p className="text-sm text-base-content/70">Online</p>
                     </div>
                 </div>
-                <button onClick={() => setSelectedUser(null)}>
-                    <X />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={async () => {
+                            if (window.confirm("Are you sure you want to clear the ENTIRE chat for both of you?")) {
+                                const { clearChat } = useChatStore.getState();
+                                await clearChat();
+                            }
+                        }}
+                        className="btn btn-error btn-xs btn-outline"
+                    >
+                        Clear Chat
+                    </button>
+                    <button onClick={() => setSelectedUser(null)} className="btn btn-ghost btn-circle btn-sm">
+                        <X />
+                    </button>
+                </div>
             </div>
         </div>
     );

@@ -136,8 +136,32 @@ export const useChatStore = create((set, get) => ({
         if (!socket) return;
 
         socket.on("newMessage", (newMessage) => {
-            const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
-            if (!isMessageSentFromSelectedUser) return;
+            const { selectedUser } = get();
+            const isMessageForActiveChat = selectedUser && newMessage.senderId === selectedUser._id;
+
+            // Check settings from localStorage
+            const settingsStr = localStorage.getItem("chat-settings");
+            const settings = settingsStr ? JSON.parse(settingsStr).state : {};
+
+            // If we are not actively looking at this chat, show notifications
+            if (!isMessageForActiveChat || document.hidden) {
+                if (settings.soundEnabled ?? true) {
+                    const audio = new Audio("/notification.mp3");
+                    audio.play().catch(() => { });
+                }
+                if (settings.messageNotifications ?? true) {
+                    toast(`New message: ${newMessage.text || "📷 Image"}`, {
+                        icon: "💬"
+                    });
+                }
+                if (settings.desktopNotifications && "Notification" in window && Notification.permission === "granted") {
+                    new Notification("New Message", {
+                        body: newMessage.text || "Sent an image",
+                    });
+                }
+            }
+
+            if (!isMessageForActiveChat) return;
             set({ messages: [...get().messages, newMessage] });
         });
 

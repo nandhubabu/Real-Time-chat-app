@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
+import { useSettingsStore } from "../store/useSettingsStore";
 import { Image, Send, X } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -8,6 +9,7 @@ const MessageInput = () => {
     const [imagePreview, setImagePreview] = useState(null);
     const fileInputRef = useRef(null);
     const { sendMessage } = useChatStore();
+    const { enterToSend } = useSettingsStore();
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -76,6 +78,11 @@ const MessageInput = () => {
                         placeholder="Type a message..."
                         value={text}
                         onChange={(e) => setText(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !enterToSend) {
+                                e.preventDefault(); // don't submit if enterToSend is false
+                            }
+                        }}
                     />
                     <input
                         type="file"

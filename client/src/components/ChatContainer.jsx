@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
+import { useSettingsStore } from "../store/useSettingsStore";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import { formatMessageTime } from "../lib/utils";
@@ -14,6 +15,7 @@ const ChatContainer = () => {
         markAsRead, deleteMessage, deleteSelectedMessages, deleteAllMessages, editMessage,
     } = useChatStore();
     const { authUser } = useAuthStore();
+    const { showTimestamps, fontSize, showReadReceipts } = useSettingsStore();
     const messageEndRef = useRef(null);
 
     // Context menu state
@@ -178,11 +180,13 @@ const ChatContainer = () => {
                                 </div>
                             </div>
 
-                            <div className="chat-header mb-1">
-                                <time className="text-xs opacity-50 ml-1">
-                                    {formatMessageTime(message.createdAt)}
-                                </time>
-                            </div>
+                            {showTimestamps && (
+                                <div className="chat-header mb-1">
+                                    <time className="text-xs opacity-50 ml-1">
+                                        {formatMessageTime(message.createdAt)}
+                                    </time>
+                                </div>
+                            )}
 
                             {/* Deleted message placeholder */}
                             {message.isDeleted ? (
@@ -210,6 +214,7 @@ const ChatContainer = () => {
                                     className={`chat-bubble flex flex-col 
                                     ${isFromMe ? "chat-bubble-primary text-primary-content" : "bg-base-200 text-base-content"}
                                     ${isSelected ? "ring-2 ring-primary ring-offset-1" : ""}
+                                    ${fontSize === "small" ? "text-sm" : fontSize === "large" ? "text-lg" : "text-base"}
                                     `}
                                 >
                                     {message.image && (
@@ -231,7 +236,7 @@ const ChatContainer = () => {
                             )}
 
                             {/* Read receipt — icon only, no text */}
-                            {isFromMe && !message.isDeleted && (
+                            {showReadReceipts && isFromMe && !message.isDeleted && (
                                 <div className="chat-footer mt-0.5">
                                     {message.isRead ? (
                                         <CheckCheck className="size-3.5 text-primary" title="Seen" />

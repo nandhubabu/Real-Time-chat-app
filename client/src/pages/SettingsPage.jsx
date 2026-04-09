@@ -102,7 +102,12 @@ const SettingsPage = () => {
                                 type="checkbox"
                                 className="toggle toggle-primary toggle-sm"
                                 checked={desktopNotifications}
-                                onChange={(e) => setDesktopNotifications(e.target.checked)}
+                                onChange={(e) => {
+                                    setDesktopNotifications(e.target.checked);
+                                    if (e.target.checked && "Notification" in window && Notification.permission !== "granted") {
+                                        Notification.requestPermission();
+                                    }
+                                }}
                             />
                         </div>
                     </div>
