@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
+import { useChatStore } from "./store/useChatStore";
 import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
@@ -13,12 +14,41 @@ import SettingsPage from "./pages/SettingsPage";
 import Navbar from "./components/Navbar";
 
 function App() {
-  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  const { authUser, checkAuth, isCheckingAuth, socket } = useAuthStore();
   const { theme } = useThemeStore();
+  const { selectedUser } = useChatStore();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  // Global message notification listener
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (newMessage) => {
+      const isMessageForActiveChat = selectedUser && newMessage.senderId === selectedUser._id;
+
+      if (!isMessageForActiveChat || document.hidden) {
+        const settingsStr = localStorage.getItem("chat-settings");
+        const settings = settingsStr ? JSON.parse(settingsStr).state : {};
+
+        if (settings.soundEnabled ?? true) {
+          const audio = new Audio("/notification.mp3");
+          audio.play().catch(() => { });
+        }
+        if (settings.messageNotifications ?? true) {
+          toast.success("New message received!", { icon: "💬" });
+        }
+        if (settings.desktopNotifications && "Notification" in window && Notification.permission === "granted") {
+          new Notification("New Message", { body: "You have received a new message" });
+        }
+      }
+    };
+
+    socket.on("newMessage", handleNewMessage);
+    return () => socket.off("newMessage", handleNewMessage);
+  }, [socket, selectedUser]);
 
   if (isCheckingAuth && !authUser) {
     return (

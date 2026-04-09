@@ -3,6 +3,8 @@ import { axiosInstance } from "../lib/axios";
 import { useAuthStore } from "./useAuthStore";
 import toast from "react-hot-toast";
 
+let messageHandlers = {};
+
 export const useChatStore = create((set, get) => ({
     messages: [],
     users: [],
@@ -129,84 +131,78 @@ export const useChatStore = create((set, get) => ({
     },
 
     subscribeToMessages: () => {
-        const { selectedUser } = get();
+        const { selectedUser, markAsRead } = get();
         if (!selectedUser) return;
 
         const socket = useAuthStore.getState().socket;
         if (!socket) return;
 
-        socket.on("newMessage", (newMessage) => {
-            const { selectedUser } = get();
-            const isMessageForActiveChat = selectedUser && newMessage.senderId === selectedUser._id;
+        // Clean up old ones just in case
+        get().unsubscribeFromMessages();
 
-            // Check settings from localStorage
-            const settingsStr = localStorage.getItem("chat-settings");
-            const settings = settingsStr ? JSON.parse(settingsStr).state : {};
-
-            // If we are not actively looking at this chat, show notifications
-            if (!isMessageForActiveChat || document.hidden) {
-                if (settings.soundEnabled ?? true) {
-                    const audio = new Audio("/notification.mp3");
-                    audio.play().catch(() => { });
-                }
-                if (settings.messageNotifications ?? true) {
-                    toast(`New message: ${newMessage.text || "📷 Image"}`, {
-                        icon: "💬"
-                    });
-                }
-                if (settings.desktopNotifications && "Notification" in window && Notification.permission === "granted") {
-                    new Notification("New Message", {
-                        body: newMessage.text || "Sent an image",
-                    });
-                }
-            }
+        messageHandlers.handleNewMessage = (newMessage) => {
+            const currentSelectedUser = get().selectedUser;
+            const isMessageForActiveChat = currentSelectedUser && newMessage.senderId === currentSelectedUser._id;
 
             if (!isMessageForActiveChat) return;
             set({ messages: [...get().messages, newMessage] });
-        });
 
-        socket.on("messagesRead", ({ from }) => {
-            if (from !== selectedUser._id) return;
+            // Mark it as read immediately since we are looking at the chat!
+            markAsRead(currentSelectedUser._id);
+        };
+
+        messageHandlers.handleMessagesRead = ({ readBy }) => {
+            const currentSelectedUser = get().selectedUser;
+            if (!currentSelectedUser || readBy !== currentSelectedUser._id) return;
             set({
                 messages: get().messages.map((msg) =>
-                    msg.senderId !== selectedUser._id ? { ...msg, isRead: true } : msg
+                    msg.senderId !== currentSelectedUser._id ? { ...msg, isRead: true } : msg
                 ),
             });
-        });
+        };
 
-        socket.on("messageDeleted", ({ messageId }) => {
+        messageHandlers.handleMessageDeleted = ({ messageId }) => {
             set({
                 messages: get().messages.map((m) =>
                     m._id === messageId ? { ...m, isDeleted: true, text: null, image: null } : m
                 ),
             });
-        });
+        };
 
-        socket.on("messageEdited", (updatedMessage) => {
+        messageHandlers.handleMessageEdited = (updatedMessage) => {
             set({
                 messages: get().messages.map((m) =>
                     m._id === updatedMessage._id ? updatedMessage : m
                 ),
             });
-        });
+        };
 
-        socket.on("allMessagesDeleted", ({ fromUserId }) => {
+        messageHandlers.handleAllMessagesDeleted = ({ fromUserId }) => {
             set({
                 messages: get().messages.map((m) =>
                     m.senderId === fromUserId ? { ...m, isDeleted: true, text: null, image: null } : m
                 ),
             });
-        });
+        };
+
+        socket.on("newMessage", messageHandlers.handleNewMessage);
+        socket.on("messagesRead", messageHandlers.handleMessagesRead);
+        socket.on("messageDeleted", messageHandlers.handleMessageDeleted);
+        socket.on("messageEdited", messageHandlers.handleMessageEdited);
+        socket.on("allMessagesDeleted", messageHandlers.handleAllMessagesDeleted);
     },
 
     unsubscribeFromMessages: () => {
         const socket = useAuthStore.getState().socket;
-        if (!socket) return;
-        socket.off("newMessage");
-        socket.off("messagesRead");
-        socket.off("messageDeleted");
-        socket.off("messageEdited");
-        socket.off("allMessagesDeleted");
+        if (!socket || !Object.keys(messageHandlers).length) return;
+
+        socket.off("newMessage", messageHandlers.handleNewMessage);
+        socket.off("messagesRead", messageHandlers.handleMessagesRead);
+        socket.off("messageDeleted", messageHandlers.handleMessageDeleted);
+        socket.off("messageEdited", messageHandlers.handleMessageEdited);
+        socket.off("allMessagesDeleted", messageHandlers.handleAllMessagesDeleted);
+
+        messageHandlers = {};
     },
 
     setSelectedUser: (selectedUser) => set({ selectedUser }),
