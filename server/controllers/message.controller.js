@@ -53,6 +53,27 @@ export const getUsersForSidebar = async (req, res) => {
     }
 };
 
+export const searchUserByUniqueId = async (req, res) => {
+    try {
+        const { uniqueId } = req.params;
+        const loggedInUserId = req.user._id;
+
+        const user = await User.findOne({
+            uniqueId: uniqueId.toUpperCase(),
+            _id: { $ne: loggedInUserId },
+        }).select("-password");
+
+        if (!user) {
+            return res.status(404).json({ message: "No user found with this ID" });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("Error in searchUserByUniqueId: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
 export const getMessages = async (req, res) => {
     try {
         const { id: userToChatId } = req.params;

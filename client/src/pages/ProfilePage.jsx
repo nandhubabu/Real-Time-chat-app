@@ -107,6 +107,24 @@ const ProfilePage = () => {
                                     ? `📅 You can change your photo again in ${daysLeft} day(s)`
                                     : "Click the camera icon to update your photo"}
                         </p>
+
+                        {/* Unique ID Badge */}
+                        {authUser?.uniqueId && (
+                            <div className="flex items-center gap-2 bg-base-200 px-4 py-2 rounded-lg">
+                                <span className="text-xs text-base-content/60">Your ID:</span>
+                                <code className="text-sm font-mono font-bold text-primary">{authUser.uniqueId}</code>
+                                <button
+                                    className="btn btn-ghost btn-xs"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(authUser.uniqueId);
+                                        toast.success("ID copied to clipboard!");
+                                    }}
+                                >
+                                    📋
+                                </button>
+                            </div>
+                        )}
+                        <p className="text-xs text-base-content/40">Share this ID with friends so they can find you!</p>
                     </div>
 
                     {/* User Info Section */}
