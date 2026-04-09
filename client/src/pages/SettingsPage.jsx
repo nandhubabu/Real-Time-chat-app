@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Send, Bell, MessageCircle, Shield, Palette, Volume2, Monitor, Clock, Type, Eye, CheckCheck, ArrowLeft } from "lucide-react";
 import { useThemeStore } from "../store/useThemeStore";
@@ -17,6 +18,42 @@ const PREVIEW_MESSAGES = [
     { id: 2, content: "I'm doing great! Just working on some new features 🚀", isSent: true },
 ];
 
+const FlipCard = ({ title, description, icon: Icon, colorClass, isFlipped, onToggle, children }) => {
+    return (
+        <div className={`bg-base-300 rounded-xl overflow-hidden shadow-sm h-full flex flex-col transition-all duration-300 ${isFlipped ? 'col-span-1 md:col-span-2' : ''}`}>
+            {!isFlipped ? (
+                <div className="flex-1 p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-base-200/50 transition-colors" onClick={onToggle}>
+                    <div className={`p-4 rounded-xl mb-4 ${colorClass.bg}`}>
+                        <Icon className={`w-8 h-8 ${colorClass.text}`} />
+                    </div>
+                    <h2 className="text-xl font-bold">{title}</h2>
+                    <p className="text-sm text-base-content/60 mt-2 mb-6">{description}</p>
+                    <button className="btn btn-outline btn-sm rounded-full px-6">
+                        More
+                    </button>
+                </div>
+            ) : (
+                <div className="flex-1 p-6 flex flex-col animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between mb-6 pb-2 border-b border-base-200">
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg ${colorClass.bg}`}>
+                                <Icon className={`w-5 h-5 ${colorClass.text}`} />
+                            </div>
+                            <h2 className="text-lg font-semibold">{title}</h2>
+                        </div>
+                        <button onClick={onToggle} className="btn btn-ghost btn-sm gap-2">
+                            <ArrowLeft className="w-4 h-4" /> Back
+                        </button>
+                    </div>
+                    <div className="flex-1 space-y-2">
+                        {children}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 const SettingsPage = () => {
     const navigate = useNavigate();
     const { theme, setTheme } = useThemeStore();
@@ -31,318 +68,224 @@ const SettingsPage = () => {
         showReadReceipts, setShowReadReceipts,
     } = useSettingsStore();
 
+    const [flipped, setFlipped] = useState({
+        notifications: false,
+        chat: false,
+        privacy: false,
+        theme: false
+    });
+
+    const toggleFlip = (card) => {
+        setFlipped(prev => ({ ...prev, [card]: !prev[card] }));
+    };
+
     return (
-        <div className="min-h-screen pt-20 pb-10 container mx-auto px-4 max-w-4xl">
-            <div className="space-y-8">
-                {/* Back Button */}
-                <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm gap-2">
-                    <ArrowLeft className="w-4 h-4" />
-                    Back
-                </button>
+        <div className="min-h-screen pt-20 pb-10 container mx-auto px-4 max-w-5xl">
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                    <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm gap-2">
+                        <ArrowLeft className="w-4 h-4" />
+                        Back
+                    </button>
+                    <h1 className="text-2xl font-bold">Settings</h1>
+                    <div className="w-20"></div>
+                </div>
 
-                {/* ═══════════════════════════════════════════ */}
-                {/* NOTIFICATION SETTINGS */}
-                {/* ═══════════════════════════════════════════ */}
-                <section className="bg-base-300 rounded-xl p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                            <Bell className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                            <h2 className="text-lg font-semibold">Notification Settings</h2>
-                            <p className="text-sm text-base-content/60">Manage how you receive notifications</p>
-                        </div>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                    <div className="space-y-4">
-                        {/* Message Notifications */}
-                        <div className="flex items-center justify-between py-3 border-b border-base-200">
-                            <div className="flex items-center gap-3">
-                                <MessageCircle className="w-4 h-4 text-base-content/60" />
-                                <div>
-                                    <p className="font-medium text-sm">Message Notifications</p>
-                                    <p className="text-xs text-base-content/50">Get notified when you receive a new message</p>
-                                </div>
-                            </div>
-                            <input
-                                type="checkbox"
-                                className="toggle toggle-primary toggle-sm"
-                                checked={messageNotifications}
-                                onChange={(e) => setMessageNotifications(e.target.checked)}
-                            />
-                        </div>
-
-                        {/* Sound */}
-                        <div className="flex items-center justify-between py-3 border-b border-base-200">
-                            <div className="flex items-center gap-3">
-                                <Volume2 className="w-4 h-4 text-base-content/60" />
-                                <div>
-                                    <p className="font-medium text-sm">Notification Sound</p>
-                                    <p className="text-xs text-base-content/50">Play a sound for incoming messages</p>
-                                </div>
-                            </div>
-                            <input
-                                type="checkbox"
-                                className="toggle toggle-primary toggle-sm"
-                                checked={soundEnabled}
-                                onChange={(e) => setSoundEnabled(e.target.checked)}
-                            />
-                        </div>
-
-                        {/* Desktop Notifications */}
-                        <div className="flex items-center justify-between py-3">
-                            <div className="flex items-center gap-3">
-                                <Monitor className="w-4 h-4 text-base-content/60" />
-                                <div>
-                                    <p className="font-medium text-sm">Desktop Notifications</p>
-                                    <p className="text-xs text-base-content/50">Show browser push notifications</p>
-                                </div>
-                            </div>
-                            <input
-                                type="checkbox"
-                                className="toggle toggle-primary toggle-sm"
-                                checked={desktopNotifications}
-                                onChange={(e) => {
-                                    setDesktopNotifications(e.target.checked);
-                                    if (e.target.checked && "Notification" in window && Notification.permission !== "granted") {
-                                        Notification.requestPermission();
-                                    }
-                                }}
-                            />
-                        </div>
-                    </div>
-                </section>
-
-                {/* ═══════════════════════════════════════════ */}
-                {/* CHAT SETTINGS */}
-                {/* ═══════════════════════════════════════════ */}
-                <section className="bg-base-300 rounded-xl p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-secondary/10 rounded-lg">
-                            <MessageCircle className="w-5 h-5 text-secondary" />
-                        </div>
-                        <div>
-                            <h2 className="text-lg font-semibold">Chat Settings</h2>
-                            <p className="text-sm text-base-content/60">Customize your chat experience</p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        {/* Enter to Send */}
-                        <div className="flex items-center justify-between py-3 border-b border-base-200">
-                            <div className="flex items-center gap-3">
-                                <Send className="w-4 h-4 text-base-content/60" />
-                                <div>
-                                    <p className="font-medium text-sm">Enter to Send</p>
-                                    <p className="text-xs text-base-content/50">Press Enter to send messages instead of clicking the button</p>
-                                </div>
-                            </div>
-                            <input
-                                type="checkbox"
-                                className="toggle toggle-secondary toggle-sm"
-                                checked={enterToSend}
-                                onChange={(e) => setEnterToSend(e.target.checked)}
-                            />
-                        </div>
-
-                        {/* Show Timestamps */}
-                        <div className="flex items-center justify-between py-3 border-b border-base-200">
-                            <div className="flex items-center gap-3">
-                                <Clock className="w-4 h-4 text-base-content/60" />
-                                <div>
-                                    <p className="font-medium text-sm">Show Timestamps</p>
-                                    <p className="text-xs text-base-content/50">Display time on each message</p>
-                                </div>
-                            </div>
-                            <input
-                                type="checkbox"
-                                className="toggle toggle-secondary toggle-sm"
-                                checked={showTimestamps}
-                                onChange={(e) => setShowTimestamps(e.target.checked)}
-                            />
-                        </div>
-
-                        {/* Font Size */}
-                        <div className="flex items-center justify-between py-3">
-                            <div className="flex items-center gap-3">
-                                <Type className="w-4 h-4 text-base-content/60" />
-                                <div>
-                                    <p className="font-medium text-sm">Font Size</p>
-                                    <p className="text-xs text-base-content/50">Adjust the chat text size</p>
-                                </div>
-                            </div>
-                            <select
-                                className="select select-bordered select-sm w-32"
-                                value={fontSize}
-                                onChange={(e) => setFontSize(e.target.value)}
-                            >
-                                <option value="small">Small</option>
-                                <option value="medium">Medium</option>
-                                <option value="large">Large</option>
-                            </select>
-                        </div>
-                    </div>
-                </section>
-
-                {/* ═══════════════════════════════════════════ */}
-                {/* PRIVACY SETTINGS */}
-                {/* ═══════════════════════════════════════════ */}
-                <section className="bg-base-300 rounded-xl p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-accent/10 rounded-lg">
-                            <Shield className="w-5 h-5 text-accent" />
-                        </div>
-                        <div>
-                            <h2 className="text-lg font-semibold">Privacy Settings</h2>
-                            <p className="text-sm text-base-content/60">Control your privacy preferences</p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        {/* Show Online Status */}
-                        <div className="flex items-center justify-between py-3 border-b border-base-200">
-                            <div className="flex items-center gap-3">
-                                <Eye className="w-4 h-4 text-base-content/60" />
-                                <div>
-                                    <p className="font-medium text-sm">Show Online Status</p>
-                                    <p className="text-xs text-base-content/50">Let others see when you are online</p>
-                                </div>
-                            </div>
-                            <input
-                                type="checkbox"
-                                className="toggle toggle-accent toggle-sm"
-                                checked={showOnlineStatus}
-                                onChange={(e) => setShowOnlineStatus(e.target.checked)}
-                            />
-                        </div>
-
-                        {/* Read Receipts */}
-                        <div className="flex items-center justify-between py-3">
-                            <div className="flex items-center gap-3">
-                                <CheckCheck className="w-4 h-4 text-base-content/60" />
-                                <div>
-                                    <p className="font-medium text-sm">Read Receipts</p>
-                                    <p className="text-xs text-base-content/50">Let others know when you've read their messages</p>
-                                </div>
-                            </div>
-                            <input
-                                type="checkbox"
-                                className="toggle toggle-accent toggle-sm"
-                                checked={showReadReceipts}
-                                onChange={(e) => setShowReadReceipts(e.target.checked)}
-                            />
-                        </div>
-                    </div>
-                </section>
-
-                {/* ═══════════════════════════════════════════ */}
-                {/* THEME SETTINGS */}
-                {/* ═══════════════════════════════════════════ */}
-                <section className="bg-base-300 rounded-xl p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-warning/10 rounded-lg">
-                            <Palette className="w-5 h-5 text-warning" />
-                        </div>
-                        <div>
-                            <h2 className="text-lg font-semibold">Theme</h2>
-                            <p className="text-sm text-base-content/60">Choose a theme for your chat interface</p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                        {THEMES.map((t) => (
-                            <button
-                                key={t}
-                                className={`
-                  group flex flex-col items-center gap-1.5 p-2 rounded-lg transition-colors
-                  ${theme === t ? "bg-base-200 ring-2 ring-primary" : "hover:bg-base-200/50"}
-                `}
-                                onClick={() => setTheme(t)}
-                            >
-                                <div
-                                    className="relative h-8 w-full rounded-md overflow-hidden"
-                                    data-theme={t}
-                                >
-                                    <div className="absolute inset-0 grid grid-cols-4 gap-px p-1">
-                                        <div className="rounded bg-primary"></div>
-                                        <div className="rounded bg-secondary"></div>
-                                        <div className="rounded bg-accent"></div>
-                                        <div className="rounded bg-neutral"></div>
+                    {/* NOTIFICATION SETTINGS */}
+                    {!(flipped.chat || flipped.privacy || flipped.theme) && (
+                        <FlipCard
+                            title="Notification Settings"
+                            description="Manage how you receive alerts"
+                            icon={Bell}
+                            colorClass={{ bg: "bg-primary/10", text: "text-primary" }}
+                            isFlipped={flipped.notifications}
+                            onToggle={() => toggleFlip("notifications")}
+                        >
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between py-3 px-2 hover:bg-base-200/50 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <MessageCircle className="w-4 h-4 text-base-content/60" />
+                                        <div>
+                                            <p className="font-medium text-sm">Message Notifications</p>
+                                            <p className="text-xs text-base-content/50">Get notified when you receive a message</p>
+                                        </div>
                                     </div>
+                                    <input type="checkbox" className="toggle toggle-primary toggle-sm" checked={messageNotifications} onChange={(e) => setMessageNotifications(e.target.checked)} />
                                 </div>
-                                <span className="text-[11px] font-medium truncate w-full text-center">
-                                    {t.charAt(0).toUpperCase() + t.slice(1)}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
+                                <div className="flex items-center justify-between py-3 px-2 hover:bg-base-200/50 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <Volume2 className="w-4 h-4 text-base-content/60" />
+                                        <div>
+                                            <p className="font-medium text-sm">Notification Sound</p>
+                                            <p className="text-xs text-base-content/50">Play a sound for incoming messages</p>
+                                        </div>
+                                    </div>
+                                    <input type="checkbox" className="toggle toggle-primary toggle-sm" checked={soundEnabled} onChange={(e) => setSoundEnabled(e.target.checked)} />
+                                </div>
+                                <div className="flex items-center justify-between py-3 px-2 hover:bg-base-200/50 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <Monitor className="w-4 h-4 text-base-content/60" />
+                                        <div>
+                                            <p className="font-medium text-sm">Desktop Notifications</p>
+                                            <p className="text-xs text-base-content/50">Show browser push notifications</p>
+                                        </div>
+                                    </div>
+                                    <input type="checkbox" className="toggle toggle-primary toggle-sm" checked={desktopNotifications} onChange={(e) => {
+                                        setDesktopNotifications(e.target.checked);
+                                        if (e.target.checked && "Notification" in window && Notification.permission !== "granted") {
+                                            Notification.requestPermission();
+                                        }
+                                    }} />
+                                </div>
+                            </div>
+                        </FlipCard>
+                    )}
 
-                    {/* Preview */}
-                    <h3 className="text-lg font-semibold mt-6 mb-3">Preview</h3>
-                    <div className="rounded-xl border border-base-300 overflow-hidden bg-base-100 shadow-lg">
-                        <div className="p-4 bg-base-200">
-                            <div className="max-w-lg mx-auto">
-                                <div className="bg-base-100 rounded-xl shadow-sm overflow-hidden">
-                                    {/* Chat Header */}
-                                    <div className="px-4 py-3 border-b border-base-300 bg-base-100">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-content font-medium">
-                                                J
+                    {/* CHAT SETTINGS */}
+                    {!(flipped.notifications || flipped.privacy || flipped.theme) && (
+                        <FlipCard
+                            title="Chat Settings"
+                            description="Customize your chat experience"
+                            icon={MessageCircle}
+                            colorClass={{ bg: "bg-secondary/10", text: "text-secondary" }}
+                            isFlipped={flipped.chat}
+                            onToggle={() => toggleFlip("chat")}
+                        >
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between py-3 px-2 hover:bg-base-200/50 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <Send className="w-4 h-4 text-base-content/60" />
+                                        <div>
+                                            <p className="font-medium text-sm">Enter to Send</p>
+                                            <p className="text-xs text-base-content/50">Press Enter to send messages</p>
+                                        </div>
+                                    </div>
+                                    <input type="checkbox" className="toggle toggle-secondary toggle-sm" checked={enterToSend} onChange={(e) => setEnterToSend(e.target.checked)} />
+                                </div>
+                                <div className="flex items-center justify-between py-3 px-2 hover:bg-base-200/50 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <Clock className="w-4 h-4 text-base-content/60" />
+                                        <div>
+                                            <p className="font-medium text-sm">Show Timestamps</p>
+                                            <p className="text-xs text-base-content/50">Display time on each message</p>
+                                        </div>
+                                    </div>
+                                    <input type="checkbox" className="toggle toggle-secondary toggle-sm" checked={showTimestamps} onChange={(e) => setShowTimestamps(e.target.checked)} />
+                                </div>
+                                <div className="flex items-center justify-between py-3 px-2 hover:bg-base-200/50 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <Type className="w-4 h-4 text-base-content/60" />
+                                        <div>
+                                            <p className="font-medium text-sm">Font Size</p>
+                                            <p className="text-xs text-base-content/50">Adjust the chat text size</p>
+                                        </div>
+                                    </div>
+                                    <select className="select select-bordered select-sm w-32" value={fontSize} onChange={(e) => setFontSize(e.target.value)}>
+                                        <option value="small">Small</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="large">Large</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </FlipCard>
+                    )}
+
+                    {/* PRIVACY SETTINGS */}
+                    {!(flipped.notifications || flipped.chat || flipped.theme) && (
+                        <FlipCard
+                            title="Privacy Settings"
+                            description="Control your privacy preferences"
+                            icon={Shield}
+                            colorClass={{ bg: "bg-accent/10", text: "text-accent" }}
+                            isFlipped={flipped.privacy}
+                            onToggle={() => toggleFlip("privacy")}
+                        >
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between py-3 px-2 hover:bg-base-200/50 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <Eye className="w-4 h-4 text-base-content/60" />
+                                        <div>
+                                            <p className="font-medium text-sm">Show Online Status</p>
+                                            <p className="text-xs text-base-content/50">Let others see when you are online</p>
+                                        </div>
+                                    </div>
+                                    <input type="checkbox" className="toggle toggle-accent toggle-sm" checked={showOnlineStatus} onChange={(e) => setShowOnlineStatus(e.target.checked)} />
+                                </div>
+                                <div className="flex items-center justify-between py-3 px-2 hover:bg-base-200/50 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <CheckCheck className="w-4 h-4 text-base-content/60" />
+                                        <div>
+                                            <p className="font-medium text-sm">Read Receipts</p>
+                                            <p className="text-xs text-base-content/50">Show others when you've read messages</p>
+                                        </div>
+                                    </div>
+                                    <input type="checkbox" className="toggle toggle-accent toggle-sm" checked={showReadReceipts} onChange={(e) => setShowReadReceipts(e.target.checked)} />
+                                </div>
+                            </div>
+                        </FlipCard>
+                    )}
+
+                    {/* THEME SETTINGS */}
+                    {!(flipped.notifications || flipped.chat || flipped.privacy) && (
+                        <FlipCard
+                            title="Appearance & Theme"
+                            description="Personalize your chat interface"
+                            icon={Palette}
+                            colorClass={{ bg: "bg-warning/10", text: "text-warning" }}
+                            isFlipped={flipped.theme}
+                            onToggle={() => toggleFlip("theme")}
+                        >
+                            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 mb-6">
+                                {THEMES.map((t) => (
+                                    <button
+                                        key={t}
+                                        className={`group flex flex-col items-center gap-1.5 p-2 rounded-lg transition-colors ${theme === t ? "bg-base-200 ring-2 ring-primary" : "hover:bg-base-200/50"}`}
+                                        onClick={() => setTheme(t)}
+                                    >
+                                        <div className="relative h-8 w-full rounded-md overflow-hidden" data-theme={t}>
+                                            <div className="absolute inset-0 grid grid-cols-4 gap-px p-1">
+                                                <div className="rounded bg-primary"></div>
+                                                <div className="rounded bg-secondary"></div>
+                                                <div className="rounded bg-accent"></div>
+                                                <div className="rounded bg-neutral"></div>
                                             </div>
+                                        </div>
+                                        <span className="text-[11px] font-medium truncate w-full text-center">
+                                            {t.charAt(0).toUpperCase() + t.slice(1)}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <h3 className="text-sm font-semibold mb-3 text-base-content/70">Theme Preview</h3>
+                            <div className="rounded-xl border border-base-300 overflow-hidden bg-base-100 shadow-sm max-w-lg mx-auto">
+                                <div className="p-4 bg-base-200">
+                                    <div className="bg-base-100 rounded-xl shadow-sm overflow-hidden">
+                                        <div className="px-4 py-3 border-b border-base-300 bg-base-100 flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-content font-medium">J</div>
                                             <div>
                                                 <h3 className="font-medium text-sm">John Doe</h3>
-                                                <p className="text-xs text-base-content/70">Online</p>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    {/* Chat Messages */}
-                                    <div className="p-4 space-y-4 min-h-[200px] max-h-[200px] overflow-y-auto bg-base-100">
-                                        {PREVIEW_MESSAGES.map((message) => (
-                                            <div
-                                                key={message.id}
-                                                className={`flex ${message.isSent ? "justify-end" : "justify-start"}`}
-                                            >
-                                                <div
-                                                    className={`
-                            max-w-[80%] rounded-xl p-3 shadow-sm
-                            ${message.isSent ? "bg-primary text-primary-content" : "bg-base-200"}
-                          `}
-                                                >
-                                                    <p className="text-sm">{message.content}</p>
-                                                    <p
-                                                        className={`
-                              text-[10px] mt-1.5
-                              ${message.isSent ? "text-primary-content/70" : "text-base-content/50"}
-                            `}
-                                                    >
-                                                        12:00 PM
-                                                    </p>
+                                        <div className="p-4 space-y-4 bg-base-100">
+                                            {PREVIEW_MESSAGES.map((message) => (
+                                                <div key={message.id} className={`flex ${message.isSent ? "justify-end" : "justify-start"}`}>
+                                                    <div className={`max-w-[80%] rounded-xl p-3 shadow-sm ${message.isSent ? "bg-primary text-primary-content" : "bg-base-200"}`}>
+                                                        <p className="text-sm">{message.content}</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Chat Input */}
-                                    <div className="p-4 border-t border-base-300 bg-base-100">
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                className="input input-bordered flex-1 text-sm h-10"
-                                                placeholder="Type a message..."
-                                                value="This is a preview"
-                                                readOnly
-                                            />
-                                            <button className="btn btn-primary h-10 min-h-0">
-                                                <Send size={18} />
-                                            </button>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </section>
+                        </FlipCard>
+                    )}
+
+                </div>
             </div>
         </div>
     );
