@@ -136,3 +136,90 @@ export const getMessages = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
+export const deleteMessage = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user._id;
+
+        const message = await Message.findById(id);
+        if (!message) return res.status(404).json({ error: "Message not found" });
+        if (message.senderId.toString() !== userId.toString()) {
+            return res.status(403).json({ error: "You can only delete your own messages" });
+        }
+
+        // Soft-delete: mark as deleted, clear text/image
+        message.isDeleted = true;
+        message.text = null;
+        message.image = null;
+        await message.save();
+
+        // Notify the other person in real-time
+        const otherUserId = message.receiverId.toString();
+        const receiverSocketId = getReceiverSocketId(otherUserId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("messageDeleted", { messageId: id });
+        }
+
+        res.status(200).json(message);
+    } catch (error) {
+        console.log("Error in deleteMessage controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const editMessage = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { text } = req.body;
+        const userId = req.user._id;
+
+        if (!text?.trim()) return res.status(400).json({ error: "Text cannot be empty" });
+
+        const message = await Message.findById(id);
+        if (!message) return res.status(404).json({ error: "Message not found" });
+        if (message.senderId.toString() !== userId.toString()) {
+            return res.status(403).json({ error: "You can only edit your own messages" });
+        }
+        if (message.isDeleted) return res.status(400).json({ error: "Cannot edit a deleted message" });
+
+        message.text = text.trim();
+        message.isEdited = true;
+        await message.save();
+
+        // Notify the other person in real-time
+        const receiverSocketId = getReceiverSocketId(message.receiverId.toString());
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("messageEdited", message);
+        }
+
+        res.status(200).json(message);
+    } catch (error) {
+        console.log("Error in editMessage controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const deleteAllMessages = async (req, res) => {
+    try {
+        const { id: otherUserId } = req.params;
+        const myId = req.user._id;
+
+        // Soft-delete all messages I sent in this conversation
+        await Message.updateMany(
+            { senderId: myId, receiverId: otherUserId },
+            { $set: { isDeleted: true, text: null, image: null } }
+        );
+
+        // Notify the other person
+        const receiverSocketId = getReceiverSocketId(otherUserId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("allMessagesDeleted", { fromUserId: myId });
+        }
+
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.log("Error in deleteAllMessages controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};

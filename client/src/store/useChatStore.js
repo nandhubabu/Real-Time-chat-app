@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import { useAuthStore } from "./useAuthStore";
+import toast from "react-hot-toast";
 
 export const useChatStore = create((set, get) => ({
     messages: [],
@@ -43,11 +44,69 @@ export const useChatStore = create((set, get) => ({
         }
     },
 
-    // Mark all messages from selectedUser as read (call when opening a chat)
+    deleteMessage: async (messageId) => {
+        try {
+            const res = await axiosInstance.delete(`/messages/${messageId}`);
+            set({
+                messages: get().messages.map((m) =>
+                    m._id === messageId ? res.data : m
+                ),
+            });
+        } catch (error) {
+            toast.error(error.response?.data?.error || "Failed to delete message");
+        }
+    },
+
+    deleteSelectedMessages: async (messageIds) => {
+        try {
+            await Promise.all(
+                messageIds.map((id) => axiosInstance.delete(`/messages/${id}`))
+            );
+            set({
+                messages: get().messages.map((m) =>
+                    messageIds.includes(m._id)
+                        ? { ...m, isDeleted: true, text: null, image: null }
+                        : m
+                ),
+            });
+        } catch (error) {
+            toast.error("Failed to delete some messages");
+        }
+    },
+
+    deleteAllMessages: async () => {
+        const { selectedUser } = get();
+        try {
+            await axiosInstance.delete(`/messages/all/${selectedUser._id}`);
+            set({
+                messages: get().messages.map((m) =>
+                    m.senderId !== selectedUser._id
+                        ? { ...m, isDeleted: true, text: null, image: null }
+                        : m
+                ),
+            });
+            toast.success("All your messages deleted");
+        } catch (error) {
+            toast.error("Failed to delete messages");
+        }
+    },
+
+    editMessage: async (messageId, newText) => {
+        try {
+            const res = await axiosInstance.put(`/messages/${messageId}`, { text: newText });
+            set({
+                messages: get().messages.map((m) =>
+                    m._id === messageId ? res.data : m
+                ),
+            });
+        } catch (error) {
+            toast.error(error.response?.data?.error || "Failed to edit message");
+        }
+    },
+
     markAsRead: async (senderId) => {
         try {
             await axiosInstance.put(`/messages/read/${senderId}`);
-            // Update local state: mark all incoming messages as read
             set({
                 messages: get().messages.map((msg) =>
                     msg.senderId === senderId ? { ...msg, isRead: true } : msg
@@ -71,12 +130,35 @@ export const useChatStore = create((set, get) => ({
             set({ messages: [...get().messages, newMessage] });
         });
 
-        // When our messages were read by the other person, update their isRead status
         socket.on("messagesRead", ({ from }) => {
-            if (from !== selectedUser._id) return; // only update if it's the active conversation
+            if (from !== selectedUser._id) return;
             set({
                 messages: get().messages.map((msg) =>
                     msg.senderId !== selectedUser._id ? { ...msg, isRead: true } : msg
+                ),
+            });
+        });
+
+        socket.on("messageDeleted", ({ messageId }) => {
+            set({
+                messages: get().messages.map((m) =>
+                    m._id === messageId ? { ...m, isDeleted: true, text: null, image: null } : m
+                ),
+            });
+        });
+
+        socket.on("messageEdited", (updatedMessage) => {
+            set({
+                messages: get().messages.map((m) =>
+                    m._id === updatedMessage._id ? updatedMessage : m
+                ),
+            });
+        });
+
+        socket.on("allMessagesDeleted", ({ fromUserId }) => {
+            set({
+                messages: get().messages.map((m) =>
+                    m.senderId === fromUserId ? { ...m, isDeleted: true, text: null, image: null } : m
                 ),
             });
         });
@@ -87,6 +169,9 @@ export const useChatStore = create((set, get) => ({
         if (!socket) return;
         socket.off("newMessage");
         socket.off("messagesRead");
+        socket.off("messageDeleted");
+        socket.off("messageEdited");
+        socket.off("allMessagesDeleted");
     },
 
     setSelectedUser: (selectedUser) => set({ selectedUser }),

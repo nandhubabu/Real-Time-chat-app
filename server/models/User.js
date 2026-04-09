@@ -31,6 +31,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "",
     },
+    about: {
+        type: String,
+        default: "",
+        maxlength: 150,
+    },
     lastProfilePicUpdate: {
         type: Date,
         default: null,
