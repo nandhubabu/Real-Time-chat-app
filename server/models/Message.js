@@ -30,6 +30,10 @@ const messageSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        clearedBy: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        }],
     },
     { timestamps: true } // Adds 'createdAt' so we can sort messages by time
 );

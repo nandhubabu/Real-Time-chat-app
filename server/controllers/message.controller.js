@@ -50,6 +50,7 @@ export const getUsersForSidebar = async (req, res) => {
                 { senderId: loggedInUserId },
                 { receiverId: loggedInUserId },
             ],
+            clearedBy: { $ne: loggedInUserId }
         }).select("senderId receiverId");
 
         // Collect the other user ID from each message conversation
@@ -72,7 +73,8 @@ export const getUsersForSidebar = async (req, res) => {
                 senderId: contact._id,
                 receiverId: loggedInUserId,
                 isRead: false,
-                isDeleted: { $ne: true }
+                isDeleted: { $ne: true },
+                clearedBy: { $ne: loggedInUserId }
             });
             contact.unreadCount = unreadCount;
         }
@@ -139,6 +141,7 @@ export const getMessages = async (req, res) => {
                 { senderId: myId, receiverId: userToChatId },
                 { senderId: userToChatId, receiverId: myId },
             ],
+            clearedBy: { $ne: myId },
         });
 
         res.status(200).json(messages);
@@ -240,19 +243,20 @@ export const clearChat = async (req, res) => {
         const { id: otherUserId } = req.params;
         const myId = req.user._id;
 
-        // Hard-delete ALL messages in this conversation (both directions) for good
-        await Message.deleteMany({
-            $or: [
-                { senderId: myId, receiverId: otherUserId },
-                { senderId: otherUserId, receiverId: myId },
-            ],
-        });
+        // Soft-delete ALL messages in this conversation for the viewing user only
+        await Message.updateMany(
+            {
+                $or: [
+                    { senderId: myId, receiverId: otherUserId },
+                    { senderId: otherUserId, receiverId: myId },
+                ],
+            },
+            { $addToSet: { clearedBy: myId } }
+        );
 
-        // Notify the other person so their screen clears too
-        const receiverSocketId = getReceiverSocketId(otherUserId);
-        if (receiverSocketId) {
-            io.to(receiverSocketId).emit("chatCleared", { clearedBy: myId });
-        }
+        // Because it's only clearing for me, we DO NOT send chatCleared to the other user.
+        // It should stay on their screen.
+        // But we DO need to clear it from our own screen via the normal React state clear in the frontend.
 
         res.status(200).json({ success: true });
     } catch (error) {
