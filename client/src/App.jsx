@@ -22,6 +22,10 @@ function App() {
     checkAuth();
   }, [checkAuth]);
 
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
   // Global message notification listener
   useEffect(() => {
     if (!socket) return;
@@ -59,7 +63,7 @@ function App() {
   }
 
   return (
-    <div data-theme={theme}>
+    <div>
       <Navbar />
       <Toaster position="top-center" reverseOrder={false} />
       <Routes>

@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
-import { Camera, User, Mail, Pencil, Check, X, ArrowLeft, Info } from "lucide-react";
+import { Camera, User, Mail, Pencil, Check, X, ArrowLeft, Info, LogOut } from "lucide-react";
 import toast from "react-hot-toast";
 
 const ProfilePage = () => {
     const navigate = useNavigate();
-    const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();
+    const { authUser, isUpdatingProfile, updateProfile, logout } = useAuthStore();
     const [selectedImg, setSelectedImg] = useState(null);
 
     const [isEditingName, setIsEditingName] = useState(false);
@@ -62,7 +62,12 @@ const ProfilePage = () => {
                         <div className="text-center flex-1">
                             <h1 className="text-2xl font-semibold">Profile</h1>
                         </div>
-                        <div className="w-16"></div>
+                        <div className="w-20 flex justify-end">
+                            <button onClick={logout} className="btn btn-sm btn-outline btn-error gap-2 text-xs">
+                                <LogOut className="size-3.5" />
+                                <span className="hidden sm:inline">Logout</span>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Avatar Upload Section */}
