@@ -9,6 +9,7 @@ import {
     deleteMessage,
     editMessage,
     deleteAllMessages,
+    clearChat,
 } from "../controllers/message.controller.js";
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.get("/:id", protectRoute, getMessages);
 router.post("/send/:id", protectRoute, sendMessage);
 router.put("/read/:senderId", protectRoute, markMessagesRead);
 router.delete("/all/:id", protectRoute, deleteAllMessages);
+router.delete("/clear/:id", protectRoute, clearChat);
 router.delete("/:id", protectRoute, deleteMessage);
 router.put("/:id", protectRoute, editMessage);
 

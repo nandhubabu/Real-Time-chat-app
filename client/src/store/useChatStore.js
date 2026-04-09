@@ -91,6 +91,17 @@ export const useChatStore = create((set, get) => ({
         }
     },
 
+    clearChat: async () => {
+        const { selectedUser } = get();
+        try {
+            await axiosInstance.delete(`/messages/clear/${selectedUser._id}`);
+            set({ messages: [] });
+            toast.success("Chat cleared");
+        } catch (error) {
+            toast.error("Failed to clear chat");
+        }
+    },
+
     editMessage: async (messageId, newText) => {
         try {
             const res = await axiosInstance.put(`/messages/${messageId}`, { text: newText });

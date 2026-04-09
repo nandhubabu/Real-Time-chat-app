@@ -127,7 +127,7 @@ export const logout = (req, res) => {
 
 export const updateProfile = async (req, res) => {
     try {
-        const { profilePic, username } = req.body;
+        const { profilePic, username, about } = req.body;
         const userId = req.user._id;
         const user = await User.findById(userId);
 
@@ -142,6 +142,11 @@ export const updateProfile = async (req, res) => {
                 return res.status(400).json({ message: "Username already taken" });
             }
             updateData.username = username;
+        }
+
+        // Handle about update
+        if (about !== undefined && about !== user.about) {
+            updateData.about = about.trim().slice(0, 150);
         }
 
         // Handle profile picture change with monthly restriction

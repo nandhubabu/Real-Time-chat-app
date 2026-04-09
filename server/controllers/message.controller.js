@@ -223,3 +223,29 @@ export const deleteAllMessages = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
+export const clearChat = async (req, res) => {
+    try {
+        const { id: otherUserId } = req.params;
+        const myId = req.user._id;
+
+        // Hard-delete ALL messages in this conversation (both directions) for good
+        await Message.deleteMany({
+            $or: [
+                { senderId: myId, receiverId: otherUserId },
+                { senderId: otherUserId, receiverId: myId },
+            ],
+        });
+
+        // Notify the other person so their screen clears too
+        const receiverSocketId = getReceiverSocketId(otherUserId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("chatCleared", { clearedBy: myId });
+        }
+
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.log("Error in clearChat controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
