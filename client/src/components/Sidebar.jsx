@@ -156,12 +156,17 @@ const Sidebar = () => {
                                     <span className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full ring-2 ring-zinc-900" />
                                 )}
                             </div>
-                            <div className="text-left min-w-0">
+                            <div className="text-left min-w-0 flex-1">
                                 <div className="font-medium truncate">{user.username}</div>
                                 <div className="text-sm text-zinc-400">
                                     {onlineUsers.includes(user._id) ? "Online" : "Offline"}
                                 </div>
                             </div>
+                            {user.unreadCount > 0 && (
+                                <div className="badge badge-primary badge-sm">
+                                    {user.unreadCount}
+                                </div>
+                            )}
                         </button>
                     ))
                 )}

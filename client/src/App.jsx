@@ -16,7 +16,7 @@ import Navbar from "./components/Navbar";
 function App() {
   const { authUser, checkAuth, isCheckingAuth, socket } = useAuthStore();
   const { theme } = useThemeStore();
-  const { selectedUser } = useChatStore();
+  const { selectedUser, subscribeToMessages, unsubscribeFromMessages } = useChatStore();
 
   useEffect(() => {
     checkAuth();
@@ -25,6 +25,14 @@ function App() {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
+
+  // Handle global chat events (new messages matching state, etc)
+  useEffect(() => {
+    if (authUser && socket) {
+      subscribeToMessages();
+    }
+    return () => unsubscribeFromMessages();
+  }, [authUser, socket, subscribeToMessages, unsubscribeFromMessages]);
 
   // Global message notification listener
   useEffect(() => {

@@ -124,6 +124,9 @@ export const useChatStore = create((set, get) => ({
                 messages: get().messages.map((msg) =>
                     msg.senderId === senderId ? { ...msg, isRead: true } : msg
                 ),
+                users: get().users.map((user) =>
+                    user._id === senderId ? { ...user, unreadCount: 0 } : user
+                ),
             });
         } catch (error) {
             console.log("Error marking messages as read:", error);
@@ -131,9 +134,6 @@ export const useChatStore = create((set, get) => ({
     },
 
     subscribeToMessages: () => {
-        const { selectedUser, markAsRead } = get();
-        if (!selectedUser) return;
-
         const socket = useAuthStore.getState().socket;
         if (!socket) return;
 
@@ -144,11 +144,26 @@ export const useChatStore = create((set, get) => ({
             const currentSelectedUser = get().selectedUser;
             const isMessageForActiveChat = currentSelectedUser && newMessage.senderId === currentSelectedUser._id;
 
-            if (!isMessageForActiveChat) return;
+            if (!isMessageForActiveChat) {
+                const isUserInList = get().users.some(u => u._id === newMessage.senderId);
+                if (!isUserInList) {
+                    get().getUsers(); // Refresh the sidebar completely to pull in the new contact and their unread count
+                } else {
+                    set({
+                        users: get().users.map((user) =>
+                            user._id === newMessage.senderId
+                                ? { ...user, unreadCount: (user.unreadCount || 0) + 1 }
+                                : user
+                        )
+                    });
+                }
+                return;
+            }
+
             set({ messages: [...get().messages, newMessage] });
 
             // Mark it as read immediately since we are looking at the chat!
-            markAsRead(currentSelectedUser._id);
+            get().markAsRead(currentSelectedUser._id);
         };
 
         messageHandlers.handleMessagesRead = ({ readBy }) => {

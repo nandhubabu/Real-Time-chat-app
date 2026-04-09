@@ -64,7 +64,18 @@ export const getUsersForSidebar = async (req, res) => {
         // Fetch full user details for those contacts only
         const contacts = await User.find({
             _id: { $in: Array.from(contactIds) },
-        }).select("-password");
+        }).select("-password").lean();
+
+        // Calculate unread message count for each contact
+        for (let contact of contacts) {
+            const unreadCount = await Message.countDocuments({
+                senderId: contact._id,
+                receiverId: loggedInUserId,
+                isRead: false,
+                isDeleted: { $ne: true }
+            });
+            contact.unreadCount = unreadCount;
+        }
 
         res.status(200).json(contacts);
     } catch (error) {

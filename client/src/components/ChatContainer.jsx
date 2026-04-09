@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 const ChatContainer = () => {
     const {
         messages, getMessages, isMessagesLoading,
-        selectedUser, subscribeToMessages, unsubscribeFromMessages,
+        selectedUser,
         markAsRead, deleteMessage, deleteSelectedMessages, deleteAllMessages, editMessage,
     } = useChatStore();
     const { authUser } = useAuthStore();
@@ -32,11 +32,9 @@ const ChatContainer = () => {
     useEffect(() => {
         if (selectedUser) {
             getMessages(selectedUser._id);
-            subscribeToMessages();
             markAsRead(selectedUser._id);
         }
-        return () => unsubscribeFromMessages();
-    }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages, markAsRead]);
+    }, [selectedUser._id, getMessages, markAsRead]);
 
     useEffect(() => {
         if (messageEndRef.current && messages) {
