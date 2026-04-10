@@ -11,6 +11,8 @@ dotenv.config();
 // 1. Logic Check: Connect to DB first
 connectDB();
 
+app.set("trust proxy", 1); // Trust first proxy (Render Load Balancer) for rate-limiting
+
 const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 150, // Limit each IP to 150 requests per windowMs
