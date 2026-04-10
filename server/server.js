@@ -16,13 +16,15 @@ app.set("trust proxy", 1); // Trust first proxy (Render Load Balancer) for rate-
 const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 150, // Limit each IP to 150 requests per windowMs
-    message: { message: "Too many requests, please try again later." }
+    message: { message: "Too many requests, please try again later." },
+    validate: { xForwardedForHeader: false },
 });
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 20, // Limit each IP to 20 requests per windowMs for auth routes
-    message: { message: "Too many authentication attempts, please try again later." }
+    message: { message: "Too many authentication attempts, please try again later." },
+    validate: { xForwardedForHeader: false },
 });
 
 app.use(express.json({ limit: "50mb" }));
