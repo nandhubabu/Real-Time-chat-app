@@ -11,10 +11,15 @@ const HomePage = () => {
             <div className="flex items-center justify-center pt-20 px-4">
                 <div className="bg-base-100 rounded-lg shadow-cl w-full max-w-6xl h-[calc(100vh-8rem)]">
                     <div className="flex h-full rounded-lg overflow-hidden">
-                        <Sidebar />
+                        {/* Sidebar: hidden on mobile if a user is selected */}
+                        <div className={`h-full ${selectedUser ? "hidden lg:flex" : "flex"} w-full lg:w-72`}>
+                            <Sidebar />
+                        </div>
 
-                        {/* Logic: Show the chat if a user is clicked, otherwise show a 'Select Chat' screen */}
-                        {!selectedUser ? <NoChatSelected /> : <ChatContainer />}
+                        {/* Chat Container / NoChatSelected: hidden on mobile if NO user is selected */}
+                        <div className={`flex-1 h-full ${!selectedUser ? "hidden lg:flex" : "flex"}`}>
+                            {!selectedUser ? <NoChatSelected /> : <ChatContainer />}
+                        </div>
                     </div>
                 </div>
             </div>
