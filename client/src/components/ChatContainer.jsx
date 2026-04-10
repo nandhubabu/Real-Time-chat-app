@@ -255,7 +255,9 @@ const ChatContainer = () => {
                 </div>
             )}
 
-            <MessageInput />
+            <div className="bg-base-100 border-t border-base-300 p-2">
+                <MessageInput />
+            </div>
         </div>
     );
 };
