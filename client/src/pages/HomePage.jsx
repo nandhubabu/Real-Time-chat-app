@@ -12,13 +12,13 @@ const HomePage = () => {
             <div className="flex-1 flex items-center justify-center p-4 min-h-0">
                 <div className="bg-base-100 rounded-lg shadow-cl w-full max-w-6xl h-full lg:h-[calc(100vh-8rem)] overflow-hidden">
                     <div className="flex h-full rounded-lg overflow-hidden">
-                        {/* Sidebar: hidden on mobile if a user is selected */}
-                        <div className={`h-full ${selectedUser ? "hidden lg:flex" : "flex"} w-full lg:w-72`}>
+                        {/* Sidebar: always visible, but icons-only on mobile */}
+                        <div className="h-full flex-none">
                             <Sidebar />
                         </div>
 
-                        {/* Chat Container / NoChatSelected: hidden on mobile if NO user is selected */}
-                        <div className={`flex-1 h-full ${!selectedUser ? "hidden lg:flex" : "flex"}`}>
+                        {/* ChatContainer: always visible beside sidebar */}
+                        <div className="h-full flex-1">
                             {!selectedUser ? <NoChatSelected /> : <ChatContainer />}
                         </div>
                     </div>
