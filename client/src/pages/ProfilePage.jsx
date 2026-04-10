@@ -99,6 +99,11 @@ const ProfilePage = () => {
                                 />
                             </label>
                         </div>
+                        {authUser?.lastProfilePicUpdate && (
+                            <p className="text-xs text-base-content/50">
+                                Last updated: {new Date(authUser.lastProfilePicUpdate).toLocaleDateString()}
+                            </p>
+                        )}
                     </div>
 
                     {/* User Info Section */}
