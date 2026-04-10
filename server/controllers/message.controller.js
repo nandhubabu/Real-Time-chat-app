@@ -2,6 +2,7 @@ import Message from "../models/Message.js";
 import User from "../models/User.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
 import cloudinary from "../lib/cloudinary.js";
+import xss from "xss";
 
 export const sendMessage = async (req, res) => {
     try {
@@ -11,15 +12,20 @@ export const sendMessage = async (req, res) => {
 
         let imageUrl;
         if (image) {
+            if (image.length > 7000000) { // ~5MB base64 size limit
+                return res.status(400).json({ error: "Image file is too large (max 5MB)" });
+            }
             const uploadResponse = await cloudinary.uploader.upload(image);
             imageUrl = uploadResponse.secure_url;
         }
+
+        const sanitizedText = text ? xss(text.trim()) : null;
 
         // 1. Create the message object
         const newMessage = new Message({
             senderId,
             receiverId,
-            text,
+            text: sanitizedText,
             image: imageUrl,
         });
 
@@ -197,7 +203,7 @@ export const editMessage = async (req, res) => {
         }
         if (message.isDeleted) return res.status(400).json({ error: "Cannot edit a deleted message" });
 
-        message.text = text.trim();
+        message.text = xss(text.trim());
         message.isEdited = true;
         await message.save();
 

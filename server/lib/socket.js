@@ -1,14 +1,18 @@
-// lib/socket.js
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: ["http://localhost:5173"],
+        origin: [process.env.CLIENT_URL || "http://localhost:5173"],
+        credentials: true,
     },
 });
 
@@ -19,14 +23,30 @@ export const getReceiverSocketId = (receiverId) => {
     return userSocketMap[receiverId];
 };
 
+io.use((socket, next) => {
+    try {
+        const cookieStr = socket.handshake.headers.cookie;
+        if (!cookieStr) return next(new Error("Authentication error"));
+
+        const token = cookieStr.split("; ").find(c => c.startsWith("jwt="))?.split("=")[1];
+        if (!token) return next(new Error("Authentication error"));
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        socket.userId = decoded.id;
+        next();
+    } catch (err) {
+        return next(new Error("Authentication error"));
+    }
+});
+
 io.on("connection", (socket) => {
     console.log("A user connected", socket.id);
 
-    // 1. Get the User ID from the handshake (sent from Frontend)
-    const userId = socket.handshake.query.userId;
+    // 1. Get the User ID securely verified via JWT
+    const userId = socket.userId;
 
     // 2. If the user is valid, store them in our map
-    if (userId && userId !== "undefined") {
+    if (userId) {
         userSocketMap[userId] = socket.id;
     }
 

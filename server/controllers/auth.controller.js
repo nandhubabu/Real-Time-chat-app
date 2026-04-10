@@ -2,6 +2,7 @@ import User from '../models/User.js'; // Must include .js
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import cloudinary from '../lib/cloudinary.js';
+import xss from 'xss';
 
 export const signup = async (req, res) => {
     const { username, email, password } = req.body;
@@ -12,11 +13,23 @@ export const signup = async (req, res) => {
             return res.status(400).json({ message: "All fields are required" });
         }
 
+        if (password.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters" });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: "Invalid email format" });
+        }
+
+        const sanitizedUsername = xss(username);
+        const sanitizedEmail = email.toLowerCase().trim();
+
         // 2. Check if user already exists
-        const existingEmail = await User.findOne({ email });
+        const existingEmail = await User.findOne({ email: sanitizedEmail });
         if (existingEmail) return res.status(400).json({ message: "Email already exists" });
 
-        const existingUsername = await User.findOne({ username });
+        const existingUsername = await User.findOne({ username: sanitizedUsername });
         if (existingUsername) return res.status(400).json({ message: "Username already exists" });
 
         // 3. Hash the Password (The Industry Guard)
@@ -25,8 +38,8 @@ export const signup = async (req, res) => {
 
         // 4. Create and Save the User
         const newUser = new User({
-            username,
-            email,
+            username: sanitizedUsername,
+            email: sanitizedEmail,
             password: hashedPassword,
         });
 
@@ -50,7 +63,6 @@ export const signup = async (req, res) => {
                 username: newUser.username,
                 email: newUser.email,
                 profilePic: newUser.profilePic,
-                token: token,
             });
         }
     } catch (error) {
@@ -90,7 +102,6 @@ export const login = async (req, res) => {
             username: user.username,
             email: user.email,
             profilePic: user.profilePic,
-            token: token,
         });
     } catch (error) {
         console.log("Error in login controller", error.message);
@@ -137,16 +148,17 @@ export const updateProfile = async (req, res) => {
 
         // Handle username change
         if (username && username !== user.username) {
-            const existingUser = await User.findOne({ username });
+            const sanitizedUsername = xss(username);
+            const existingUser = await User.findOne({ username: sanitizedUsername });
             if (existingUser) {
                 return res.status(400).json({ message: "Username already taken" });
             }
-            updateData.username = username;
+            updateData.username = sanitizedUsername;
         }
 
         // Handle about update
         if (about !== undefined && about !== user.about) {
-            updateData.about = about.trim().slice(0, 150);
+            updateData.about = xss(about.trim()).slice(0, 150);
         }
 
         // Handle profile picture change with monthly restriction
