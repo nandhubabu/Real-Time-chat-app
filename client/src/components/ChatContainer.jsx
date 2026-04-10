@@ -104,12 +104,14 @@ const ChatContainer = () => {
     }
 
     return (
-        <div className="flex-1 flex flex-col bg-base-100 overflow-hidden" onClick={() => setContextMenu(null)}>
-            <ChatHeader onSelect={() => setSelectMode(true)} onDeleteAll={handleDeleteAll} />
+        <div className="flex flex-col h-full bg-base-100 overflow-hidden" onClick={() => setContextMenu(null)}>
+            <div className="flex-none bg-base-100/90 backdrop-blur-sm z-10 border-b border-base-300">
+                <ChatHeader onSelect={() => setSelectMode(true)} onDeleteAll={handleDeleteAll} />
+            </div>
 
             {/* Multi-select Toolbar */}
             {selectMode && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-base-200 border-b border-base-300 text-sm">
+                <div className="flex-none items-center gap-2 px-4 py-2 bg-base-200 border-b border-base-300 text-sm z-10">
                     <span>{selectedIds.size} selected</span>
                     <button
                         className="btn btn-sm btn-error gap-1 ml-auto"
@@ -255,7 +257,7 @@ const ChatContainer = () => {
                 </div>
             )}
 
-            <div className="bg-base-100 border-t border-base-300 p-2">
+            <div className="flex-none bg-base-100 border-t border-base-300 p-2 z-10">
                 <MessageInput />
             </div>
         </div>
