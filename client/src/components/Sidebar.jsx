@@ -76,7 +76,7 @@ const Sidebar = () => {
             </div>
 
             {/* User List */}
-            <div className="overflow-y-auto w-full py-3 flex-1">
+            <div className="overflow-y-auto w-full py-3 flex-1 scrollbar-hide">
                 {filteredUsers.length === 0 ? (
                     <div className="text-center text-zinc-500 py-8 px-4 flex flex-col items-center gap-2">
                         <Search className="size-8 opacity-40" />
