@@ -205,6 +205,29 @@ const ProfilePage = () => {
                                 {authUser?.email}
                             </p>
                         </div>
+
+                        {/* Unique ID (Read-only) */}
+                        <div className="space-y-1.5">
+                            <div className="text-sm text-base-content/60 flex items-center gap-2">
+                                <Info className="w-4 h-4" />
+                                Unique ID (For adding friends)
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <p className="px-4 py-2.5 bg-base-200 rounded-lg border font-mono text-success flex-1">
+                                    {authUser?.uniqueId || "USR-XXXXXX"}
+                                </p>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(authUser?.uniqueId);
+                                        toast.success("ID copied to clipboard!");
+                                    }}
+                                    className="btn btn-sm btn-outline btn-success h-[42px]"
+                                    title="Copy ID"
+                                >
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
