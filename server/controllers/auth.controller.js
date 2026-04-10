@@ -98,6 +98,13 @@ export const login = async (req, res) => {
             secure: process.env.NODE_ENV === "production",
         });
 
+        // 4. Lazy fix for legacy users (ensure they have a profile pic)
+        const defaultAvatar = "https://res.cloudinary.com/dzhl70x7v/image/upload/v1712745000/default-avatar_m5p2y9.png";
+        if (!user.profilePic) {
+            user.profilePic = defaultAvatar;
+            await user.save();
+        }
+
         res.status(200).json({
             _id: user._id,
             username: user.username,
@@ -120,6 +127,13 @@ export const checkAuth = async (req, res) => {
         const user = await User.findById(decoded.id).select("-password");
 
         if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Lazy fix for legacy users
+        const defaultAvatar = "https://res.cloudinary.com/dzhl70x7v/image/upload/v1712745000/default-avatar_m5p2y9.png";
+        if (!user.profilePic) {
+            user.profilePic = defaultAvatar;
+            await user.save();
+        }
 
         res.status(200).json(user);
     } catch (error) {
