@@ -191,7 +191,7 @@ const ChatContainer = () => {
                                 </div>
                             ) : (
                                 <div
-                                    className={`chat-bubble flex flex-col 
+                                    className={`chat-bubble flex flex-col max-w-[85%] sm:max-w-[75%]
                                     ${isFromMe ? "chat-bubble-primary text-primary-content" : "bg-base-200 text-base-content"}
                                     ${isSelected ? "ring-2 ring-primary ring-offset-1" : ""}
                                     ${fontSize === "small" ? "text-sm" : fontSize === "large" ? "text-lg" : "text-base"}
