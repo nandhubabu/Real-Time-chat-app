@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Send, Bell, MessageCircle, Shield, Palette, Volume2, Monitor, Clock, Type, Eye, CheckCheck, ArrowLeft } from "lucide-react";
+import { Send, Bell, MessageCircle, Shield, Palette, Volume2, Monitor, Clock, Type, Eye, CheckCheck, ArrowLeft, UserPlus, Search } from "lucide-react";
 import { useThemeStore } from "../store/useThemeStore";
 import { useSettingsStore } from "../store/useSettingsStore";
+import { useChatStore } from "../store/useChatStore";
+import { axiosInstance } from "../lib/axios";
+import toast from "react-hot-toast";
 
 const THEMES = [
     "light", "dark", "cupcake", "bumblebee", "emerald", "corporate",
@@ -72,8 +75,34 @@ const SettingsPage = () => {
         notifications: false,
         chat: false,
         privacy: false,
-        theme: false
+        theme: false,
+        contacts: false
     });
+
+    const { setSelectedUser } = useChatStore();
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResult, setSearchResult] = useState(null);
+    const [isSearching, setIsSearching] = useState(false);
+
+    const handleSearch = async (e) => {
+        e.preventDefault();
+        if (!searchQuery.trim()) return;
+        setIsSearching(true);
+        try {
+            const res = await axiosInstance.get(`/messages/search/${searchQuery.trim()}`);
+            setSearchResult(res.data);
+        } catch (error) {
+            toast.error(error.response?.data?.message || "User not found");
+            setSearchResult(null);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const handleSelectSearchResult = (user) => {
+        setSelectedUser(user);
+        navigate("/");
+    };
 
     const toggleFlip = (card) => {
         setFlipped(prev => ({ ...prev, [card]: !prev[card] }));
@@ -95,7 +124,7 @@ const SettingsPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     {/* NOTIFICATION SETTINGS */}
-                    {!(flipped.chat || flipped.privacy || flipped.theme) && (
+                    {!(flipped.chat || flipped.privacy || flipped.theme || flipped.contacts) && (
                         <FlipCard
                             title="Notification Settings"
                             description="Manage how you receive alerts"
@@ -145,7 +174,7 @@ const SettingsPage = () => {
                     )}
 
                     {/* CHAT SETTINGS */}
-                    {!(flipped.notifications || flipped.privacy || flipped.theme) && (
+                    {!(flipped.notifications || flipped.privacy || flipped.theme || flipped.contacts) && (
                         <FlipCard
                             title="Chat Settings"
                             description="Customize your chat experience"
@@ -194,7 +223,7 @@ const SettingsPage = () => {
                     )}
 
                     {/* PRIVACY SETTINGS */}
-                    {!(flipped.notifications || flipped.chat || flipped.theme) && (
+                    {!(flipped.notifications || flipped.chat || flipped.theme || flipped.contacts) && (
                         <FlipCard
                             title="Privacy Settings"
                             description="Control your privacy preferences"
@@ -229,7 +258,7 @@ const SettingsPage = () => {
                     )}
 
                     {/* THEME SETTINGS */}
-                    {!(flipped.notifications || flipped.chat || flipped.privacy) && (
+                    {!(flipped.notifications || flipped.chat || flipped.privacy || flipped.contacts) && (
                         <FlipCard
                             title="Appearance & Theme"
                             description="Personalize your chat interface"
@@ -285,6 +314,67 @@ const SettingsPage = () => {
                         </FlipCard>
                     )}
 
+                    {/* ADD CONTACT SETTINGS */}
+                    {!(flipped.notifications || flipped.chat || flipped.privacy || flipped.theme) && (
+                        <FlipCard
+                            title="Add Contact"
+                            description="Find and message new users by ID"
+                            icon={UserPlus}
+                            colorClass={{ bg: "bg-info/10", text: "text-info" }}
+                            isFlipped={flipped.contacts}
+                            onToggle={() => toggleFlip("contacts")}
+                        >
+                            <div className="space-y-4">
+                                <p className="text-sm text-base-content/70">
+                                    Search for your friends by their unique user ID to start a conversion.
+                                </p>
+                                <form onSubmit={handleSearch} className="flex items-center gap-2 mb-3">
+                                    <input
+                                        type="text"
+                                        placeholder="Search by ID (USR-XXXXXX)"
+                                        className="input input-bordered w-full"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="btn btn-square btn-primary"
+                                        disabled={isSearching}
+                                    >
+                                        {isSearching
+                                            ? <span className="loading loading-spinner" />
+                                            : <Search className="size-5" />
+                                        }
+                                    </button>
+                                </form>
+
+                                {searchResult && (
+                                    <div className="p-4 border border-base-300 bg-base-200/50 rounded-xl mt-4">
+                                        <p className="text-xs text-base-content/50 mb-3 font-semibold uppercase tracking-wider">Search Result</p>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <img
+                                                    src={searchResult.profilePic || "/avatar.png"}
+                                                    alt={searchResult.username}
+                                                    className="size-12 object-cover rounded-full"
+                                                />
+                                                <div>
+                                                    <div className="font-bold text-lg">{searchResult.username}</div>
+                                                    <div className="text-sm text-primary">{searchResult.uniqueId}</div>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleSelectSearchResult(searchResult)}
+                                                className="btn btn-primary btn-sm"
+                                            >
+                                                Message
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </FlipCard>
+                    )}
                 </div>
             </div>
         </div>
