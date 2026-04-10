@@ -99,7 +99,7 @@ export const login = async (req, res) => {
         });
 
         // 4. Lazy fix for legacy users (ensure they have a profile pic)
-        const defaultAvatar = "https://res.cloudinary.com/dzhl70x7v/image/upload/v1712745000/default-avatar_m5p2y9.png";
+        const defaultAvatar = "https://avatar.iran.liara.run/public";
         if (!user.profilePic) {
             user.profilePic = defaultAvatar;
             await user.save();
@@ -129,7 +129,7 @@ export const checkAuth = async (req, res) => {
         if (!user) return res.status(404).json({ message: "User not found" });
 
         // Lazy fix for legacy users
-        const defaultAvatar = "https://res.cloudinary.com/dzhl70x7v/image/upload/v1712745000/default-avatar_m5p2y9.png";
+        const defaultAvatar = "https://avatar.iran.liara.run/public";
         if (!user.profilePic) {
             user.profilePic = defaultAvatar;
             await user.save();

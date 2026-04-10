@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
     },
     profilePic: {
         type: String,
-        default: "https://res.cloudinary.com/dzhl70x7v/image/upload/v1712745000/default-avatar_m5p2y9.png",
+        default: "https://avatar.iran.liara.run/public",
     },
     about: {
         type: String,
