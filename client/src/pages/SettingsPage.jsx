@@ -79,6 +79,8 @@ const SettingsPage = () => {
         contacts: false
     });
 
+    const isMobile = window.innerWidth < 768; // Simple mobile detection
+
     const { setSelectedUser } = useChatStore();
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResult, setSearchResult] = useState(null);
@@ -154,21 +156,23 @@ const SettingsPage = () => {
                                     </div>
                                     <input type="checkbox" className="toggle toggle-primary toggle-sm" checked={soundEnabled} onChange={(e) => setSoundEnabled(e.target.checked)} />
                                 </div>
-                                <div className="flex items-center justify-between py-3 px-2 hover:bg-base-200/50 rounded-lg">
-                                    <div className="flex items-center gap-3">
-                                        <Monitor className="w-4 h-4 text-base-content/60" />
-                                        <div>
-                                            <p className="font-medium text-sm">Desktop Notifications</p>
-                                            <p className="text-xs text-base-content/50">Show browser push notifications</p>
+                                {!isMobile && (
+                                    <div className="flex items-center justify-between py-3 px-2 hover:bg-base-200/50 rounded-lg">
+                                        <div className="flex items-center gap-3">
+                                            <Monitor className="w-4 h-4 text-base-content/60" />
+                                            <div>
+                                                <p className="font-medium text-sm">Desktop Notifications</p>
+                                                <p className="text-xs text-base-content/50">Show browser push notifications</p>
+                                            </div>
                                         </div>
+                                        <input type="checkbox" className="toggle toggle-primary toggle-sm" checked={desktopNotifications} onChange={(e) => {
+                                            setDesktopNotifications(e.target.checked);
+                                            if (e.target.checked && "Notification" in window && Notification.permission !== "granted") {
+                                                Notification.requestPermission();
+                                            }
+                                        }} />
                                     </div>
-                                    <input type="checkbox" className="toggle toggle-primary toggle-sm" checked={desktopNotifications} onChange={(e) => {
-                                        setDesktopNotifications(e.target.checked);
-                                        if (e.target.checked && "Notification" in window && Notification.permission !== "granted") {
-                                            Notification.requestPermission();
-                                        }
-                                    }} />
-                                </div>
+                                )}
                             </div>
                         </FlipCard>
                     )}
@@ -184,16 +188,18 @@ const SettingsPage = () => {
                             onToggle={() => toggleFlip("chat")}
                         >
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between py-3 px-2 hover:bg-base-200/50 rounded-lg">
-                                    <div className="flex items-center gap-3">
-                                        <Send className="w-4 h-4 text-base-content/60" />
-                                        <div>
-                                            <p className="font-medium text-sm">Enter to Send</p>
-                                            <p className="text-xs text-base-content/50">Press Enter to send messages</p>
+                                {!isMobile && (
+                                    <div className="flex items-center justify-between py-3 px-2 hover:bg-base-200/50 rounded-lg">
+                                        <div className="flex items-center gap-3">
+                                            <Send className="w-4 h-4 text-base-content/60" />
+                                            <div>
+                                                <p className="font-medium text-sm">Enter to Send</p>
+                                                <p className="text-xs text-base-content/50">Press Enter to send messages</p>
+                                            </div>
                                         </div>
+                                        <input type="checkbox" className="toggle toggle-secondary toggle-sm" checked={enterToSend} onChange={(e) => setEnterToSend(e.target.checked)} />
                                     </div>
-                                    <input type="checkbox" className="toggle toggle-secondary toggle-sm" checked={enterToSend} onChange={(e) => setEnterToSend(e.target.checked)} />
-                                </div>
+                                )}
                                 <div className="flex items-center justify-between py-3 px-2 hover:bg-base-200/50 rounded-lg">
                                     <div className="flex items-center gap-3">
                                         <Clock className="w-4 h-4 text-base-content/60" />
