@@ -129,7 +129,7 @@ const ChatContainer = () => {
                 </div>
             )}
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                 {messages.map((message) => {
                     const isFromMe = message.senderId === authUser._id;
                     const profilePic = isFromMe ? authUser.profilePic : selectedUser.profilePic;
@@ -204,6 +204,7 @@ const ChatContainer = () => {
                                             src={message.image}
                                             alt="Attachment"
                                             className="sm:max-w-[200px] rounded-md mb-2 object-cover"
+                                            onError={(e) => { e.target.style.display = 'none'; }}
                                         />
                                     )}
                                     {message.text && (

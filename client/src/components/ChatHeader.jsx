@@ -18,7 +18,11 @@ const ChatHeader = ({ onSelect, onDeleteAll }) => {
 
                     <div className="avatar">
                         <div className="size-10 rounded-full relative">
-                            <img src={selectedUser.profilePic || "/avatar.png"} alt={selectedUser.username} />
+                            <img
+                                src={selectedUser.profilePic || "/avatar.png"}
+                                alt={selectedUser.username}
+                                onError={(e) => { e.target.src = "https://avatar.iran.liara.run/public"; }}
+                            />
                         </div>
                     </div>
                     <div>

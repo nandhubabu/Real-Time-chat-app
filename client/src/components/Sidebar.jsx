@@ -93,7 +93,12 @@ const Sidebar = () => {
                             `}
                         >
                             <div className="relative">
-                                <img src={user.profilePic || "/avatar.png"} alt={user.username} className="size-11 object-cover rounded-full" />
+                                <img
+                                    src={user.profilePic || "/avatar.png"}
+                                    alt={user.username}
+                                    className="size-11 object-cover rounded-full"
+                                    onError={(e) => { e.target.src = "https://avatar.iran.liara.run/public"; }}
+                                />
                                 {onlineUsers.includes(user._id) && (
                                     <span className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full ring-2 ring-zinc-900" />
                                 )}
