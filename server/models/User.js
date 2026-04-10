@@ -43,11 +43,10 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Retry uniqueId generation on the rare chance of collision
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
     if (this.isNew && !this.uniqueId) {
         this.uniqueId = generateUniqueId();
     }
-    next();
 });
 
 const User = mongoose.model('User', userSchema);
