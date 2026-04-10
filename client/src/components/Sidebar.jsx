@@ -27,16 +27,16 @@ const Sidebar = () => {
     if (isUsersLoading) return <SidebarSkeleton />;
 
     return (
-        <aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
+        <aside className="h-full w-full lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
             {/* Header */}
-            <div className="border-b border-base-300 w-full p-5">
-                <div className="flex items-center gap-2">
-                    <Users className="size-6" />
-                    <span className="font-semibold hidden lg:inline">Contacts</span>
+            <div className="border-b border-base-300 w-full p-4">
+                <div className="flex items-center gap-2 mb-3">
+                    <Users className="size-5" />
+                    <span className="font-semibold">Contacts</span>
                 </div>
 
                 {/* Search Bar — Local Name Filter */}
-                <div className="hidden lg:flex items-center gap-2 mt-4 mb-3">
+                <div className="flex items-center gap-2 mb-3">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-base-content/50" />
                         <input
@@ -59,7 +59,7 @@ const Sidebar = () => {
                 </div>
 
                 {/* Online filter toggle */}
-                <div className="hidden lg:flex items-center justify-between">
+                <div className="flex items-center justify-between">
                     <label className="cursor-pointer flex items-center gap-2">
                         <input
                             type="checkbox"
@@ -98,14 +98,14 @@ const Sidebar = () => {
                                     <span className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full ring-2 ring-zinc-900" />
                                 )}
                             </div>
-                            <div className="hidden lg:block text-left min-w-0 flex-1">
+                            <div className="text-left min-w-0 flex-1">
                                 <div className="font-medium truncate">{user.username}</div>
                                 <div className="text-sm text-zinc-400">
                                     {onlineUsers.includes(user._id) ? "Online" : "Offline"}
                                 </div>
                             </div>
                             {user.unreadCount > 0 && (
-                                <div className="badge badge-primary badge-sm absolute lg:relative top-2 right-2 lg:top-0 lg:right-0">
+                                <div className="badge badge-primary badge-sm">
                                     {user.unreadCount}
                                 </div>
                             )}
