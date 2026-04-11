@@ -3,15 +3,11 @@ import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { Search, Users, X } from "lucide-react";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
-import toast from "react-hot-toast";
-import { axiosInstance } from "../lib/axios";
 
 const Sidebar = () => {
     const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } = useChatStore();
     const { onlineUsers } = useAuthStore();
     const [searchQuery, setSearchQuery] = useState("");
-    const [searchResult, setSearchResult] = useState(null);
-    const [isSearching, setIsSearching] = useState(false);
     const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
     useEffect(() => {
@@ -27,9 +23,9 @@ const Sidebar = () => {
     if (isUsersLoading) return <SidebarSkeleton />;
 
     return (
-        <aside className="h-full w-full lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
+        <aside className="flex h-full min-h-0 w-full flex-col border-r border-base-300 transition-all duration-200 lg:w-80">
             {/* Header */}
-            <div className="border-b border-base-300 w-full p-4">
+            <div className="w-full shrink-0 border-b border-base-300 p-3 sm:p-4">
                 <div className="flex items-center gap-2 mb-3">
                     <Users className="size-5" />
                     <span className="font-semibold">Contacts</span>
@@ -59,8 +55,8 @@ const Sidebar = () => {
                 </div>
 
                 {/* Online filter toggle */}
-                <div className="flex items-center justify-between">
-                    <label className="cursor-pointer flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <label className="flex cursor-pointer items-center gap-2">
                         <input
                             type="checkbox"
                             checked={showOnlineOnly}
@@ -76,7 +72,7 @@ const Sidebar = () => {
             </div>
 
             {/* User List */}
-            <div className="overflow-y-auto w-full py-3 flex-1 scrollbar-hide">
+            <div className="min-h-0 flex-1 overflow-y-auto py-3 scrollbar-hide">
                 {filteredUsers.length === 0 ? (
                     <div className="text-center text-zinc-500 py-8 px-4 flex flex-col items-center gap-2">
                         <Search className="size-8 opacity-40" />
@@ -88,7 +84,7 @@ const Sidebar = () => {
                         <button
                             key={user._id}
                             onClick={() => setSelectedUser(user)}
-                            className={`w-full p-3 flex items-center gap-3 hover:bg-base-300 transition-colors
+                            className={`flex w-full min-w-0 items-center gap-3 p-3 transition-colors hover:bg-base-300
                                 ${selectedUser?._id === user._id ? "bg-base-300 ring-1 ring-base-300" : ""}
                             `}
                         >

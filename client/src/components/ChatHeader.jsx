@@ -6,8 +6,8 @@ const ChatHeader = ({ onSelect, onDeleteAll }) => {
 
     return (
         <div className="p-2.5 border-b border-base-300">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                     {/* Back button for mobile */}
                     <button
                         onClick={() => setSelectedUser(null)}
@@ -17,7 +17,7 @@ const ChatHeader = ({ onSelect, onDeleteAll }) => {
                     </button>
 
                     <div className="avatar">
-                        <div className="size-10 rounded-full relative">
+                        <div className="relative size-9 rounded-full sm:size-10">
                             <img
                                 src={selectedUser.profilePic || "/avatar.png"}
                                 alt={selectedUser.username}
@@ -25,17 +25,17 @@ const ChatHeader = ({ onSelect, onDeleteAll }) => {
                             />
                         </div>
                     </div>
-                    <div>
-                        <h3 className="font-medium">{selectedUser.username}</h3>
-                        <p className="text-sm text-base-content/70">Online</p>
+                    <div className="min-w-0">
+                        <h3 className="truncate font-medium">{selectedUser.username}</h3>
+                        <p className="truncate text-sm text-base-content/70">Online</p>
                     </div>
                 </div>
-                <div className="flex items-center">
+                <div className="flex shrink-0 items-center gap-1">
                     <div className="dropdown dropdown-end">
                         <div tabIndex={0} role="button" className="btn btn-ghost btn-circle btn-sm">
                             <MoreVertical className="size-5" />
                         </div>
-                        <ul tabIndex={0} className="dropdown-content z-[50] menu p-2 shadow-xl bg-base-100 rounded-box w-56 border border-base-300">
+                        <ul tabIndex={0} className="dropdown-content z-[50] menu w-52 max-w-[calc(100vw-1rem)] rounded-box border border-base-300 bg-base-100 p-2 shadow-xl">
                             <li>
                                 <a onClick={() => {
                                     document.activeElement.blur();
@@ -66,7 +66,7 @@ const ChatHeader = ({ onSelect, onDeleteAll }) => {
                             </li>
                         </ul>
                     </div>
-                    <button onClick={() => setSelectedUser(null)} className="btn btn-ghost btn-circle btn-sm">
+                    <button onClick={() => setSelectedUser(null)} className="btn btn-ghost btn-circle btn-sm hidden lg:inline-flex">
                         <X className="size-5" />
                     </button>
                 </div>

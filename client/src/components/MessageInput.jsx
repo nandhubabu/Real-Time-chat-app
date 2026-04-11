@@ -49,9 +49,9 @@ const MessageInput = () => {
     };
 
     return (
-        <div className="w-full">
+        <div className="w-full min-w-0">
             {imagePreview && (
-                <div className="mb-3 flex items-center gap-2">
+                <div className="mb-3 flex flex-wrap items-center gap-2">
                     <div className="relative">
                         <img
                             src={imagePreview}
@@ -70,11 +70,11 @@ const MessageInput = () => {
                 </div>
             )}
 
-            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                <div className="flex-1 flex gap-2">
+            <form onSubmit={handleSendMessage} className="flex items-end gap-2">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
                     <input
                         type="text"
-                        className="w-full input input-bordered rounded-lg input-md sm:input-lg"
+                        className="input input-bordered input-md min-w-0 flex-1 rounded-lg sm:input-lg"
                         placeholder="Type a message..."
                         value={text}
                         onChange={(e) => setText(e.target.value)}
@@ -94,7 +94,7 @@ const MessageInput = () => {
 
                     <button
                         type="button"
-                        className={`flex btn btn-circle btn-md sm:btn-lg
+                        className={`btn btn-circle btn-md shrink-0 sm:btn-lg
                      ${imagePreview ? "text-emerald-500" : "text-zinc-400"}`}
                         onClick={() => fileInputRef.current?.click()}
                     >
@@ -103,7 +103,7 @@ const MessageInput = () => {
                 </div>
                 <button
                     type="submit"
-                    className="btn btn-md btn-circle sm:btn-lg"
+                    className="btn btn-circle btn-md shrink-0 sm:btn-lg"
                     disabled={!text.trim() && !imagePreview}
                 >
                     <Send className="size-6 sm:size-7" />

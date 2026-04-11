@@ -1,6 +1,6 @@
 const SidebarSkeleton = () => {
     return (
-        <aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
+        <aside className="flex h-full w-full flex-col border-r border-base-300 transition-all duration-200 lg:w-80">
             <div className="overflow-y-auto w-full py-3">
                 {[...Array(6)].map((_, i) => (
                     <div key={i} className="w-full p-3 flex items-center gap-3">

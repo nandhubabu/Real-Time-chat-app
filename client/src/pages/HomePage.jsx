@@ -7,18 +7,18 @@ const HomePage = () => {
     const { selectedUser } = useChatStore();
 
     return (
-        <div className="h-screen bg-base-200 overflow-hidden flex flex-col">
+        <div className="flex min-h-[100dvh] flex-col overflow-hidden bg-base-200">
             <div className="h-16 flex-none" /> {/* Spacer for fixed Navbar */}
-            <div className="flex-1 flex items-center justify-center min-h-0">
-                <div className="bg-base-100 shadow-cl w-full h-full lg:h-full overflow-hidden">
-                    <div className="flex h-full rounded-lg overflow-hidden">
+            <div className="flex h-[calc(100dvh-4rem)] min-h-0 flex-1 items-stretch justify-center lg:p-4">
+                <div className="flex h-full min-h-0 w-full max-w-7xl overflow-hidden bg-base-100 lg:rounded-2xl lg:shadow-xl">
+                    <div className="flex h-full min-h-0 w-full overflow-hidden">
                         {/* Sidebar: hidden on mobile if a user is selected */}
-                        <div className={`h-full ${selectedUser ? "hidden lg:flex" : "flex"} w-full lg:w-72`}>
+                        <div className={`h-full min-w-0 ${selectedUser ? "hidden lg:flex" : "flex"} w-full lg:w-80 lg:flex-none`}>
                             <Sidebar />
                         </div>
 
                         {/* ChatContainer: hidden on mobile if no user is selected */}
-                        <div className={`h-full flex-1 ${!selectedUser ? "hidden lg:flex" : "flex"}`}>
+                        <div className={`h-full min-w-0 flex-1 ${!selectedUser ? "hidden lg:flex" : "flex"}`}>
                             {!selectedUser ? <NoChatSelected /> : <ChatContainer />}
                         </div>
                     </div>

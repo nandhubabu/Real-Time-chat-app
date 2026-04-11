@@ -5,8 +5,7 @@ import { useSettingsStore } from "../store/useSettingsStore";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import { formatMessageTime } from "../lib/utils";
-import { Check, CheckCheck, Trash2, Pencil, X, SquareCheck } from "lucide-react";
-import toast from "react-hot-toast";
+import { Check, CheckCheck, Trash2, Pencil, X } from "lucide-react";
 
 const ChatContainer = () => {
     const {
@@ -30,11 +29,11 @@ const ChatContainer = () => {
     const [editText, setEditText] = useState("");
 
     useEffect(() => {
-        if (selectedUser) {
-            getMessages(selectedUser._id);
-            markAsRead(selectedUser._id);
-        }
-    }, [selectedUser._id, getMessages, markAsRead]);
+        if (!selectedUser) return;
+
+        getMessages(selectedUser._id);
+        markAsRead(selectedUser._id);
+    }, [selectedUser, getMessages, markAsRead]);
 
     useEffect(() => {
         if (messageEndRef.current && messages) {
@@ -104,24 +103,24 @@ const ChatContainer = () => {
     }
 
     return (
-        <div className="flex flex-col h-full bg-base-100 overflow-hidden" onClick={() => setContextMenu(null)}>
+        <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-base-100" onClick={() => setContextMenu(null)}>
             <div className="flex-none bg-base-100/90 backdrop-blur-sm z-10 border-b border-base-300">
                 <ChatHeader onSelect={() => setSelectMode(true)} onDeleteAll={handleDeleteAll} />
             </div>
 
             {/* Multi-select Toolbar */}
             {selectMode && (
-                <div className="flex-none items-center gap-2 px-4 py-2 bg-base-200 border-b border-base-300 text-sm z-10">
-                    <span>{selectedIds.size} selected</span>
+                <div className="z-10 flex flex-none flex-wrap items-center gap-2 border-b border-base-300 bg-base-200 px-3 py-2 text-sm sm:px-4">
+                    <span className="w-full text-sm font-medium sm:w-auto">{selectedIds.size} selected</span>
                     <button
-                        className="btn btn-sm btn-error gap-1 ml-auto"
+                        className="btn btn-sm btn-error gap-1 w-full sm:ml-auto sm:w-auto"
                         disabled={selectedIds.size === 0}
                         onClick={handleDeleteSelected}
                     >
                         <Trash2 className="size-3.5" /> Delete selected
                     </button>
                     <button
-                        className="btn btn-sm btn-ghost"
+                        className="btn btn-sm btn-ghost w-full sm:w-auto"
                         onClick={() => { setSelectMode(false); setSelectedIds(new Set()); }}
                     >
                         <X className="size-4" /> Cancel
@@ -129,7 +128,7 @@ const ChatContainer = () => {
                 </div>
             )}
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3 scrollbar-hide sm:space-y-4 sm:p-4" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {messages.map((message) => {
                     const isFromMe = message.senderId === authUser._id;
                     const profilePic = isFromMe ? authUser.profilePic : selectedUser.profilePic;
@@ -139,7 +138,7 @@ const ChatContainer = () => {
                     return (
                         <div
                             key={message._id}
-                            className={`chat ${isFromMe ? "chat-end" : "chat-start"} relative`}
+                            className={`chat relative ${isFromMe ? "chat-end" : "chat-start"} ${selectMode && isFromMe ? "pl-6 sm:pl-7" : ""}`}
                             onContextMenu={(e) => isFromMe && !message.isDeleted && handleRightClick(e, message)}
                             onClick={() => selectMode && isFromMe && toggleSelectMessage(message._id)}
                         >
@@ -157,7 +156,7 @@ const ChatContainer = () => {
                             )}
 
                             <div className="chat-image avatar">
-                                <div className="size-10 rounded-full border border-base-300">
+                                <div className="size-8 rounded-full border border-base-300 sm:size-10">
                                     <img src={profilePic || "/avatar.png"} alt="profile pic" />
                                 </div>
                             </div>
@@ -172,14 +171,14 @@ const ChatContainer = () => {
 
                             {/* Deleted message placeholder */}
                             {message.isDeleted ? (
-                                <div className="chat-bubble bg-base-200 text-base-content/40 italic text-sm flex items-center gap-1">
+                                <div className="chat-bubble flex max-w-[min(82vw,20rem)] items-center gap-1 bg-base-200 text-sm italic text-base-content/40 sm:max-w-[70%]">
                                     <Trash2 className="size-3" /> This message was deleted
                                 </div>
                             ) : isEditing ? (
                                 // Inline edit input
-                                <div className="flex items-center gap-2 max-w-xs">
+                                <div className="flex w-full max-w-[min(18rem,70vw)] items-center gap-2 sm:max-w-xs">
                                     <input
-                                        className="input input-sm input-bordered flex-1"
+                                        className="input input-sm input-bordered min-w-0 flex-1"
                                         value={editText}
                                         onChange={(e) => setEditText(e.target.value)}
                                         onKeyDown={(e) => {
@@ -193,7 +192,7 @@ const ChatContainer = () => {
                                 </div>
                             ) : (
                                 <div
-                                    className={`chat-bubble flex flex-col max-w-[85%] sm:max-w-[75%]
+                                    className={`chat-bubble flex max-w-[min(82vw,22rem)] flex-col break-words sm:max-w-[75%]
                                     ${isFromMe ? "chat-bubble-primary text-primary-content" : "bg-base-200 text-base-content"}
                                     ${isSelected ? "ring-2 ring-primary ring-offset-1" : ""}
                                     ${fontSize === "small" ? "text-sm" : fontSize === "large" ? "text-lg" : "text-base"}
@@ -203,7 +202,7 @@ const ChatContainer = () => {
                                         <img
                                             src={message.image}
                                             alt="Attachment"
-                                            className="sm:max-w-[200px] rounded-md mb-2 object-cover"
+                                            className="mb-2 w-full max-w-[min(16rem,68vw)] rounded-md object-cover sm:max-w-[200px]"
                                             onError={(e) => { e.target.style.display = 'none'; }}
                                         />
                                     )}
@@ -258,7 +257,7 @@ const ChatContainer = () => {
                 </div>
             )}
 
-            <div className="flex-none bg-base-100 border-t border-base-300 p-2 z-10">
+            <div className="z-10 flex-none border-t border-base-300 bg-base-100 p-2 sm:p-3">
                 <MessageInput />
             </div>
         </div>
