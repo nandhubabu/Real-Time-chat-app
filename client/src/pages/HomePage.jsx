@@ -7,9 +7,9 @@ const HomePage = () => {
     const { selectedUser } = useChatStore();
 
     return (
-        <div className="flex min-h-[100dvh] flex-col overflow-hidden bg-base-200">
-            <div className="h-16 flex-none" /> {/* Spacer for fixed Navbar */}
-            <div className="flex h-[calc(100dvh-4rem)] min-h-0 flex-1 items-stretch justify-center lg:p-4">
+        <div className="flex h-screen min-h-[100dvh] flex-col overflow-hidden bg-base-200">
+            <div className="h-16 shrink-0" /> {/* Spacer for fixed Navbar */}
+            <div className="flex min-h-0 flex-1 items-stretch justify-center lg:p-4">
                 <div className="flex h-full min-h-0 w-full overflow-hidden bg-base-100 lg:rounded-2xl lg:shadow-xl">
                     <div className="flex h-full min-h-0 w-full overflow-hidden">
                         {/* Sidebar: hidden on mobile if a user is selected */}
