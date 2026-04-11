@@ -3,15 +3,15 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
 import { useChatStore } from "./store/useChatStore";
-import { Loader } from "lucide-react";
+import Loading from "./components/Loading";
 import { Toaster } from "react-hot-toast";
-
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import Navbar from "./components/Navbar";
+import { toast } from "react-hot-toast";
 
 function App() {
   const { authUser, checkAuth, isCheckingAuth, socket } = useAuthStore();
@@ -63,11 +63,7 @@ function App() {
   }, [socket, selectedUser]);
 
   if (isCheckingAuth && !authUser) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader className="size-10 animate-spin" />
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
