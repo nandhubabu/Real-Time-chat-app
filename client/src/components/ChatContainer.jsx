@@ -103,7 +103,7 @@ const ChatContainer = () => {
     }
 
     return (
-        <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-base-100" onClick={() => setContextMenu(null)}>
+        <div className="flex h-full min-h-0 min-w-0 w-full flex-col overflow-hidden bg-base-100" onClick={() => setContextMenu(null)}>
             <div className="flex-none bg-base-100/90 backdrop-blur-sm z-10 border-b border-base-300">
                 <ChatHeader onSelect={() => setSelectMode(true)} onDeleteAll={handleDeleteAll} />
             </div>
@@ -128,7 +128,7 @@ const ChatContainer = () => {
                 </div>
             )}
 
-            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3 scrollbar-hide sm:space-y-4 sm:p-4" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+            <div className="min-h-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto p-3 scrollbar-hide sm:space-y-4 sm:p-4" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {messages.map((message) => {
                     const isFromMe = message.senderId === authUser._id;
                     const profilePic = isFromMe ? authUser.profilePic : selectedUser.profilePic;
@@ -138,7 +138,7 @@ const ChatContainer = () => {
                     return (
                         <div
                             key={message._id}
-                            className={`chat relative ${isFromMe ? "chat-end" : "chat-start"} ${selectMode && isFromMe ? "pl-6 sm:pl-7" : ""}`}
+                            className={`chat relative w-full ${isFromMe ? "chat-end" : "chat-start"} ${selectMode && isFromMe ? "pl-6 sm:pl-7" : ""}`}
                             onContextMenu={(e) => isFromMe && !message.isDeleted && handleRightClick(e, message)}
                             onClick={() => selectMode && isFromMe && toggleSelectMessage(message._id)}
                         >
