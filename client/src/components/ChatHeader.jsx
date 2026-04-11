@@ -1,8 +1,10 @@
 import { X, MoreVertical, SquareCheck, Trash2, Ban, ArrowLeft } from "lucide-react";
 import { useChatStore } from "../store/useChatStore";
+import { getAvatarUrl, getDisplayName, handleAvatarError } from "../lib/utils";
 
 const ChatHeader = ({ onSelect, onDeleteAll }) => {
     const { selectedUser, setSelectedUser } = useChatStore();
+    const displayName = getDisplayName(selectedUser);
 
     return (
         <div className="p-2.5 border-b border-base-300">
@@ -19,14 +21,14 @@ const ChatHeader = ({ onSelect, onDeleteAll }) => {
                     <div className="avatar">
                         <div className="relative size-9 rounded-full sm:size-10">
                             <img
-                                src={selectedUser.profilePic || "/avatar.png"}
-                                alt={selectedUser.username}
-                                onError={(e) => { e.target.src = "https://avatar.iran.liara.run/public"; }}
+                                src={getAvatarUrl(selectedUser)}
+                                alt={displayName}
+                                onError={handleAvatarError}
                             />
                         </div>
                     </div>
                     <div className="min-w-0">
-                        <h3 className="truncate font-medium">{selectedUser.username}</h3>
+                        <h3 className="truncate font-medium">{displayName}</h3>
                         <p className="truncate text-sm text-base-content/70">Online</p>
                     </div>
                 </div>

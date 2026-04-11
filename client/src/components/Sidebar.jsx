@@ -3,6 +3,7 @@ import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { Search, Users, X } from "lucide-react";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
+import { getAvatarUrl, getDisplayName, handleAvatarError } from "../lib/utils";
 
 const Sidebar = () => {
     const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } = useChatStore();
@@ -15,7 +16,7 @@ const Sidebar = () => {
     }, [getUsers]);
 
     const filteredUsers = users.filter((user) => {
-        const matchesSearch = user.username.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = getDisplayName(user).toLowerCase().includes(searchQuery.toLowerCase());
         const matchesOnline = showOnlineOnly ? onlineUsers.includes(user._id) : true;
         return matchesSearch && matchesOnline;
     });
@@ -80,38 +81,42 @@ const Sidebar = () => {
                         <p className="text-xs opacity-60">Wait for new messages or add a contact by ID in settings!</p>
                     </div>
                 ) : (
-                    filteredUsers.map((user) => (
-                        <button
-                            key={user._id}
-                            onClick={() => setSelectedUser(user)}
-                            className={`flex w-full min-w-0 items-center gap-3 p-3 transition-colors hover:bg-base-300
+                    filteredUsers.map((user) => {
+                        const displayName = getDisplayName(user);
+
+                        return (
+                            <button
+                                key={user._id}
+                                onClick={() => setSelectedUser(user)}
+                                className={`flex w-full min-w-0 items-center gap-3 p-3 transition-colors hover:bg-base-300
                                 ${selectedUser?._id === user._id ? "bg-base-300 ring-1 ring-base-300" : ""}
                             `}
-                        >
-                            <div className="relative">
-                                <img
-                                    src={user.profilePic || "/avatar.png"}
-                                    alt={user.username}
-                                    className="size-11 object-cover rounded-full"
-                                    onError={(e) => { e.target.src = "https://avatar.iran.liara.run/public"; }}
-                                />
-                                {onlineUsers.includes(user._id) && (
-                                    <span className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full ring-2 ring-zinc-900" />
+                            >
+                                <div className="relative">
+                                    <img
+                                        src={getAvatarUrl(user)}
+                                        alt={displayName}
+                                        className="size-11 object-cover rounded-full"
+                                        onError={handleAvatarError}
+                                    />
+                                    {onlineUsers.includes(user._id) && (
+                                        <span className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full ring-2 ring-zinc-900" />
+                                    )}
+                                </div>
+                                <div className="text-left min-w-0 flex-1">
+                                    <div className="font-medium truncate">{displayName}</div>
+                                    <div className="text-sm text-zinc-400">
+                                        {onlineUsers.includes(user._id) ? "Online" : "Offline"}
+                                    </div>
+                                </div>
+                                {user.unreadCount > 0 && (
+                                    <div className="badge badge-primary badge-sm">
+                                        {user.unreadCount}
+                                    </div>
                                 )}
-                            </div>
-                            <div className="text-left min-w-0 flex-1">
-                                <div className="font-medium truncate">{user.username}</div>
-                                <div className="text-sm text-zinc-400">
-                                    {onlineUsers.includes(user._id) ? "Online" : "Offline"}
-                                </div>
-                            </div>
-                            {user.unreadCount > 0 && (
-                                <div className="badge badge-primary badge-sm">
-                                    {user.unreadCount}
-                                </div>
-                            )}
-                        </button>
-                    ))
+                            </button>
+                        );
+                    })
                 )}
             </div>
         </aside>

@@ -4,7 +4,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useSettingsStore } from "../store/useSettingsStore";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
-import { formatMessageTime } from "../lib/utils";
+import { formatMessageTime, getAvatarUrl, getDisplayName, handleAvatarError } from "../lib/utils";
 import { Check, CheckCheck, Trash2, Pencil, X } from "lucide-react";
 
 const ChatContainer = () => {
@@ -16,6 +16,8 @@ const ChatContainer = () => {
     const { authUser } = useAuthStore();
     const { showTimestamps, fontSize, showReadReceipts } = useSettingsStore();
     const messageEndRef = useRef(null);
+    const selectedDisplayName = getDisplayName(selectedUser);
+    const authDisplayName = getDisplayName(authUser);
 
     // Context menu state
     const [contextMenu, setContextMenu] = useState(null); // { x, y, messageId, isFromMe, text }
@@ -131,7 +133,8 @@ const ChatContainer = () => {
             <div className="min-h-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto p-3 scrollbar-hide sm:space-y-4 sm:p-4" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {messages.map((message) => {
                     const isFromMe = message.senderId === authUser._id;
-                    const profilePic = isFromMe ? authUser.profilePic : selectedUser.profilePic;
+                    const profilePic = isFromMe ? getAvatarUrl(authUser) : getAvatarUrl(selectedUser);
+                    const avatarAlt = isFromMe ? authDisplayName : selectedDisplayName;
                     const isSelected = selectedIds.has(message._id);
                     const isEditing = editingId === message._id;
 
@@ -157,7 +160,7 @@ const ChatContainer = () => {
 
                             <div className="chat-image avatar">
                                 <div className="size-8 rounded-full border border-base-300 sm:size-10">
-                                    <img src={profilePic || "/avatar.png"} alt="profile pic" />
+                                    <img src={profilePic} alt={avatarAlt} onError={handleAvatarError} />
                                 </div>
                             </div>
 

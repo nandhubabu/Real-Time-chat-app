@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { Camera, User, Mail, Pencil, Check, X, ArrowLeft, Info, LogOut } from "lucide-react";
 import toast from "react-hot-toast";
+import { getAvatarUrl, getDisplayName, handleAvatarError } from "../lib/utils";
 
 const ProfilePage = () => {
     const navigate = useNavigate();
     const { authUser, isUpdatingProfile, updateProfile, logout } = useAuthStore();
     const [selectedImg, setSelectedImg] = useState(null);
+    const displayName = getDisplayName(authUser);
 
     const [isEditingName, setIsEditingName] = useState(false);
     const [newUsername, setNewUsername] = useState(authUser?.username || "");
@@ -74,9 +76,10 @@ const ProfilePage = () => {
                     <div className="flex flex-col items-center gap-4">
                         <div className="relative">
                             <img
-                                src={selectedImg || authUser.profilePic || "/avatar.png"}
+                                src={selectedImg || getAvatarUrl(authUser)}
                                 alt="Profile"
                                 className="size-32 rounded-full object-cover border-4 border-base-100"
+                                onError={handleAvatarError}
                             />
                             <label
                                 htmlFor="avatar-upload"
@@ -140,7 +143,7 @@ const ProfilePage = () => {
                                 </div>
                             ) : (
                                 <div className="flex items-center justify-between px-4 py-2.5 bg-base-200 rounded-lg border">
-                                    <span>{authUser?.username}</span>
+                                    <span>{displayName}</span>
                                     <button
                                         onClick={() => setIsEditingName(true)}
                                         className="btn btn-ghost btn-xs btn-circle"

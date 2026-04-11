@@ -6,6 +6,7 @@ import { useSettingsStore } from "../store/useSettingsStore";
 import { useChatStore } from "../store/useChatStore";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
+import { getAvatarUrl, getDisplayName, handleAvatarError } from "../lib/utils";
 
 const THEMES = [
     "light", "dark", "cupcake", "bumblebee", "emerald", "corporate",
@@ -21,7 +22,9 @@ const PREVIEW_MESSAGES = [
     { id: 2, content: "I'm doing great! Just working on some new features 🚀", isSent: true },
 ];
 
-const FlipCard = ({ title, description, icon: Icon, colorClass, isFlipped, onToggle, children }) => {
+const FlipCard = ({ title, description, icon, colorClass, isFlipped, onToggle, children }) => {
+    const Icon = icon;
+
     return (
         <div className={`bg-base-300 rounded-xl overflow-hidden shadow-sm h-full flex flex-col transition-all duration-300 ${isFlipped ? 'col-span-1 md:col-span-2' : ''}`}>
             {!isFlipped ? (
@@ -360,12 +363,13 @@ const SettingsPage = () => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-4">
                                                 <img
-                                                    src={searchResult.profilePic || "/avatar.png"}
-                                                    alt={searchResult.username}
+                                                    src={getAvatarUrl(searchResult)}
+                                                    alt={getDisplayName(searchResult)}
                                                     className="size-12 object-cover rounded-full"
+                                                    onError={handleAvatarError}
                                                 />
                                                 <div>
-                                                    <div className="font-bold text-lg">{searchResult.username}</div>
+                                                    <div className="font-bold text-lg">{getDisplayName(searchResult)}</div>
                                                     <div className="text-sm text-primary">{searchResult.uniqueId}</div>
                                                 </div>
                                             </div>
