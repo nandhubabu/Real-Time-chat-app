@@ -187,7 +187,7 @@ const ProfilePage = () => {
                             ) : (
                                 <div className="flex items-start justify-between px-4 py-2.5 bg-base-200 rounded-lg border min-h-[3rem]">
                                     <span className="whitespace-pre-wrap flex-1 break-words">
-                                        {authUser?.about || <span className="italic opacity-50">Hey there! I am using this app.</span>}
+                                        {authUser?.about || <span className="italic opacity-50">Hey there! I am using Echo.</span>}
                                     </span>
                                     <button
                                         onClick={() => setIsEditingAbout(true)}

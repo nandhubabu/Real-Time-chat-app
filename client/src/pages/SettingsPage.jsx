@@ -332,7 +332,7 @@ const SettingsPage = () => {
                         >
                             <div className="space-y-4">
                                 <p className="text-sm text-base-content/70">
-                                    Search for your friends by their unique user ID to start a conversion.
+                                    Search for your friends by their unique user ID to start a conversation.
                                 </p>
                                 <form onSubmit={handleSearch} className="flex items-center gap-2 mb-3">
                                     <input
