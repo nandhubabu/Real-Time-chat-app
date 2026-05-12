@@ -12,6 +12,10 @@ export const sendMessage = async (req, res) => {
 
         let imageUrl;
         if (image) {
+            // Validate it's actually an image string
+            if (!/^data:image\/(jpeg|png|gif|webp);base64,/.test(image)) {
+                return res.status(400).json({ error: "Invalid image format" });
+            }
             if (image.length > 7000000) { // ~5MB base64 size limit
                 return res.status(400).json({ error: "Image file is too large (max 5MB)" });
             }
@@ -33,10 +37,17 @@ export const sendMessage = async (req, res) => {
         await newMessage.save();
 
         // 3. Real-time Logic: Send to the receiver if they are online
-        const receiverSocketId = getReceiverSocketId(receiverId);
-        if (receiverSocketId) {
-            // io.to() sends a message to a SPECIFIC socket ID
-            io.to(receiverSocketId).emit("newMessage", newMessage);
+        const receiverSocketIds = getReceiverSocketId(receiverId);
+        if (receiverSocketIds.length > 0) {
+            io.to(receiverSocketIds).emit("newMessage", newMessage);
+        }
+
+        // Also emit to the sender's OTHER open tabs/devices (so their chat stays in sync)
+        const senderSocketIds = getReceiverSocketId(senderId);
+        if (senderSocketIds.length > 0) {
+            // We don't want to emit to the specific socket that sent the request, but we don't have it here.
+            // However, our frontend ignores duplicate messages by adding them to state locally.
+            io.to(senderSocketIds).emit("newMessageSync", newMessage); 
         }
 
         res.status(201).json(newMessage);
@@ -51,22 +62,17 @@ export const getUsersForSidebar = async (req, res) => {
         const loggedInUserId = req.user._id;
 
         // Find all unique user IDs that the logged-in user has messaged or received messages from
-        const messages = await Message.find({
-            $or: [
-                { senderId: loggedInUserId },
-                { receiverId: loggedInUserId },
-            ],
-            clearedBy: { $ne: loggedInUserId }
-        }).select("senderId receiverId");
-
-        // Collect the other user ID from each message conversation
-        const contactIds = new Set();
-        messages.forEach((msg) => {
-            const otherId = msg.senderId.toString() === loggedInUserId.toString()
-                ? msg.receiverId.toString()
-                : msg.senderId.toString();
-            contactIds.add(otherId);
+        const sentToIds = await Message.distinct("receiverId", { 
+            senderId: loggedInUserId, 
+            clearedBy: { $ne: loggedInUserId } 
         });
+        const receivedFromIds = await Message.distinct("senderId", { 
+            receiverId: loggedInUserId, 
+            clearedBy: { $ne: loggedInUserId } 
+        });
+
+        // Collect the other user IDs from each message conversation
+        const contactIds = new Set([...sentToIds.map(String), ...receivedFromIds.map(String)]);
 
         // Fetch full user details for those contacts only
         const contacts = await User.find({
@@ -97,8 +103,13 @@ export const searchUserByUniqueId = async (req, res) => {
         const { uniqueId } = req.params;
         const loggedInUserId = req.user._id;
 
+        let searchId = uniqueId.toUpperCase();
+        if (!searchId.startsWith("USR-")) {
+            searchId = "USR-" + searchId;
+        }
+
         const user = await User.findOne({
-            uniqueId: uniqueId.toUpperCase(),
+            uniqueId: searchId,
             _id: { $ne: loggedInUserId },
         }).select("-password");
 
@@ -125,9 +136,9 @@ export const markMessagesRead = async (req, res) => {
         );
 
         // Notify the original sender in real-time that their messages were read
-        const senderSocketId = getReceiverSocketId(senderId);
-        if (senderSocketId) {
-            io.to(senderSocketId).emit("messagesRead", { readBy: receiverId, from: senderId });
+        const senderSocketIds = getReceiverSocketId(senderId);
+        if (senderSocketIds.length > 0) {
+            io.to(senderSocketIds).emit("messagesRead", { readBy: receiverId, from: senderId });
         }
 
         res.status(200).json({ success: true });
@@ -148,7 +159,7 @@ export const getMessages = async (req, res) => {
                 { senderId: userToChatId, receiverId: myId },
             ],
             clearedBy: { $ne: myId },
-        });
+        }).sort({ createdAt: 1 });
 
         res.status(200).json(messages);
     } catch (error) {
@@ -176,9 +187,9 @@ export const deleteMessage = async (req, res) => {
 
         // Notify the other person in real-time
         const otherUserId = message.receiverId.toString();
-        const receiverSocketId = getReceiverSocketId(otherUserId);
-        if (receiverSocketId) {
-            io.to(receiverSocketId).emit("messageDeleted", { messageId: id });
+        const receiverSocketIds = getReceiverSocketId(otherUserId);
+        if (receiverSocketIds.length > 0) {
+            io.to(receiverSocketIds).emit("messageDeleted", { messageId: id });
         }
 
         res.status(200).json(message);
@@ -208,9 +219,9 @@ export const editMessage = async (req, res) => {
         await message.save();
 
         // Notify the other person in real-time
-        const receiverSocketId = getReceiverSocketId(message.receiverId.toString());
-        if (receiverSocketId) {
-            io.to(receiverSocketId).emit("messageEdited", message);
+        const receiverSocketIds = getReceiverSocketId(message.receiverId.toString());
+        if (receiverSocketIds.length > 0) {
+            io.to(receiverSocketIds).emit("messageEdited", message);
         }
 
         res.status(200).json(message);
@@ -232,9 +243,9 @@ export const deleteAllMessages = async (req, res) => {
         );
 
         // Notify the other person
-        const receiverSocketId = getReceiverSocketId(otherUserId);
-        if (receiverSocketId) {
-            io.to(receiverSocketId).emit("allMessagesDeleted", { fromUserId: myId });
+        const receiverSocketIds = getReceiverSocketId(otherUserId);
+        if (receiverSocketIds.length > 0) {
+            io.to(receiverSocketIds).emit("allMessagesDeleted", { fromUserId: myId });
         }
 
         res.status(200).json({ success: true });

@@ -201,6 +201,7 @@ export const useChatStore = create((set, get) => ({
         };
 
         socket.on("newMessage", messageHandlers.handleNewMessage);
+        socket.on("newMessageSync", messageHandlers.handleNewMessage);
         socket.on("messagesRead", messageHandlers.handleMessagesRead);
         socket.on("messageDeleted", messageHandlers.handleMessageDeleted);
         socket.on("messageEdited", messageHandlers.handleMessageEdited);
@@ -212,6 +213,7 @@ export const useChatStore = create((set, get) => ({
         if (!socket || !Object.keys(messageHandlers).length) return;
 
         socket.off("newMessage", messageHandlers.handleNewMessage);
+        socket.off("newMessageSync", messageHandlers.handleNewMessage);
         socket.off("messagesRead", messageHandlers.handleMessagesRead);
         socket.off("messageDeleted", messageHandlers.handleMessageDeleted);
         socket.off("messageEdited", messageHandlers.handleMessageEdited);

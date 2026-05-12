@@ -17,10 +17,10 @@ const io = new Server(server, {
 });
 
 // The "Memory" of our online users
-const userSocketMap = {}; // { userId: socketId }
+const userSocketMap = {}; // { userId: [socketId1, socketId2] }
 
 export const getReceiverSocketId = (receiverId) => {
-    return userSocketMap[receiverId];
+    return userSocketMap[receiverId] || [];
 };
 
 io.use((socket, next) => {
@@ -47,7 +47,10 @@ io.on("connection", (socket) => {
 
     // 2. If the user is valid, store them in our map
     if (userId) {
-        userSocketMap[userId] = socket.id;
+        if (!userSocketMap[userId]) {
+            userSocketMap[userId] = [];
+        }
+        userSocketMap[userId].push(socket.id);
     }
 
     // 3. Tell EVERYONE who is currently online
@@ -57,8 +60,13 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
         console.log("A user disconnected", socket.id);
 
-        // 4. Remove the user from our map when they leave
-        delete userSocketMap[userId];
+        // 4. Remove the socket from our map when they leave
+        if (userId && userSocketMap[userId]) {
+            userSocketMap[userId] = userSocketMap[userId].filter(id => id !== socket.id);
+            if (userSocketMap[userId].length === 0) {
+                delete userSocketMap[userId];
+            }
+        }
 
         // 5. Update the online list for everyone else
         io.emit("getOnlineUsers", Object.keys(userSocketMap));
